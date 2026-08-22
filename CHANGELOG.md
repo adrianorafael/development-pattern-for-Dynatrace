@@ -8,9 +8,29 @@ Versioning: [Semantic Versioning](https://semver.org/) — applied to this skill
 of the apps it helps you build. "Breaking" means breaking for the person *using* the skill:
 a rule renumbered, a reference removed, a template's contract changed.
 
-The version here matches `.claude-plugin/plugin.json` → `version`.
+The version here matches `.claude-plugin/plugin.json` → `version` — the config file is the
+source of truth, the same way `app.config.json` → `app.version` is for an app.
 
 ## [Unreleased]
+
+## [1.2.0] - 2026-08-22
+
+### Added
+- **"How this skill is used"** in `SKILL.md`, the README and the project page: the skill
+  loads with the *first* prompt about the app and stays loaded through delivery. Documents
+  the shape as **strict at the edges, free in the middle** — front-load (bootstrap
+  questions, live documentation reading, spec, approval), the middle is the developer's
+  vibecoding with only three invariants held, back-load (verify the finished code, bump the
+  version, sync the docs, approval, push).
+- A step-by-step walkthrough of a real session, in the README and on the page.
+
+### Changed
+- **Versioning is a config-file concern, not a git-tag one.** `app.config.json` →
+  `app.version` is stated as the mechanism throughout. Tagging is removed from the publish
+  checklist, the release flow, phase 6 and the repository flow, and appears only as an
+  explicitly optional note. The CHANGELOG template no longer assumes tag-based compare links.
+- Phase 0 in `spec-driven-workflow.md` no longer says to install the Dynatrace skills — they
+  are fetched on demand, matching the change made in 1.1.0.
 
 ## [1.1.0] - 2026-08-22
 
@@ -58,6 +78,4 @@ The version here matches `.claude-plugin/plugin.json` → `version`.
   the correction that `strato-components-preview` is deprecated in Strato 3.x.
 - Project README and GitHub Pages site.
 
-[Unreleased]: https://github.com/adrianorafael/development-pattern-for-Dynatrace/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/adrianorafael/development-pattern-for-Dynatrace/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/adrianorafael/development-pattern-for-Dynatrace/releases/tag/v1.0.0
+

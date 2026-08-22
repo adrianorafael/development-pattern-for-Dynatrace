@@ -31,8 +31,12 @@ records at install time and what a user sees in the app listing.
 }
 ```
 
-Everything else — the git tag, the CHANGELOG heading, the README, the page — must agree
-with it. A version that appears in two places with two values is worse than no version.
+Everything else — the CHANGELOG heading, the README, the page — must agree with it.
+A version that appears in two places with two values is worse than no version.
+
+**The config file is the mechanism.** Not a git tag, not a release object, not a comment in
+the code. `app.version` is what Dynatrace reads and what the user sees, so that is the value
+that must be right.
 
 ### Semantic versioning, in app terms
 
@@ -58,8 +62,13 @@ Pre-releases when you need to deploy something not yet ready: `1.3.0-beta.1`,
    spent. Even for "just one more fix" — that is a PATCH bump.
 2. **Bump in the same commit as the change**, not in a separate "bump version" commit.
    A commit that changes behaviour without touching the version is an incomplete commit.
-3. **Tag what you publish.** `git tag -a v1.2.0 -m "…" && git push origin v1.2.0`.
-   The tag is how someone gets back to the exact source of a build running in production.
+3. **The bump ships with the change.** `app.config.json`, `CHANGELOG.md`, README and page
+   move in one commit, so the repository always answers "what is version 1.2.0?" from a
+   single revision.
+
+*Optional, if the project wants it:* a `v<version>` git tag or a GitHub Release makes it
+easier to jump back to the source of a build. Useful, never required — the config file is
+the source of truth either way.
 
 ### Deciding the bump — ask in this order
 
@@ -146,7 +155,7 @@ has never heard of.
 
 ### The publish checklist
 
-Run this every time, before the push. It is nine lines and it is not optional.
+Run this every time, before the push. It is eight lines and it is not optional.
 
 - [ ] `app.config.json` → `app.version` bumped, and the bump level justified above
 - [ ] `CHANGELOG.md` has an entry, dated, written for the app's user
@@ -156,7 +165,6 @@ Run this every time, before the push. It is nine lines and it is not optional.
 - [ ] Spec in `specs/` reflects the change ([spec-driven-workflow.md](spec-driven-workflow.md))
 - [ ] Sanitize + secret scan clean ([security-and-secrets.md](security-and-secrets.md))
 - [ ] Review checklist run ([code-review-checklist.md](code-review-checklist.md))
-- [ ] Git tag prepared for the version being published
 
 Then tell the user what you are about to push, naming the version:
 
@@ -184,8 +192,7 @@ If the repository publishes `docs/` through a `gh-pages` branch, that branch is
 7. Sanitize + scan + review                         → R1, R9
 8. Commit (code + version + docs together)          → no AI attribution, R10
 9. ⛔ Ask, naming the version and the target        → then push
-10. Tag v<version> and push the tag
-11. ⛔ Ask, naming the tenant                       → then npx dt-app deploy
+10. ⛔ Ask, naming the tenant                       → then npx dt-app deploy
 ```
 
 Steps 3–6 belong to the same commit as step 1. Splitting them is how a repository ends up

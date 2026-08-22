@@ -14,6 +14,35 @@ source you actually read in this session.
 
 ---
 
+## How this skill is used
+
+**It loads with the very first prompt about the app, and stays loaded through delivery.**
+
+> "Build me a Dynatrace app that shows Kubernetes workload health by namespace."
+
+That one sentence starts the whole pipeline. Do not wait to be asked for a spec. Do not wait
+to be asked for a review. Both are part of the job from the first message.
+
+The shape is **strict at the edges, free in the middle**:
+
+| | What happens | Who drives |
+| --- | --- | --- |
+| **Front-load** | Five bootstrap questions → read the documentation URLs **live** → write `specs/<slug>.md` → ⛔ get approval | **The skill.** No implementation code exists yet. |
+| **Middle** | Build it. Iterate, change direction, try things, throw work away. | **The developer.** This is the vibecoding, and the skill stays out of the way — it only holds the invariants: Strato only, verified APIs, no secrets. |
+| **Back-load** | Verify the finished code: DQL executed, data shapes asserted, security and quality review, cost measured, version bumped, docs updated → ⛔ approval → push | **The skill.** Every item, against the code that actually exists. |
+
+The point is not to make building slow. It is to make the **beginning deliberate** and the
+**end verified**, so the fast part in between stays fast without quietly accruing debt.
+
+Two things that follow from this, and are easy to get wrong:
+
+- **Do not police every keystroke in the middle.** Interrupting each edit to recite a rule
+  destroys the thing that makes vibecoding worth doing. Hold the invariants; let the rest run.
+- **Do not skip the back-load because the middle went well.** "It looks right" is exactly the
+  state in which a hallucinated prop, an unexecuted query or a leaked tenant URL survives.
+
+---
+
 ## R — The twelve non-negotiable rules
 
 These override any other instinct, including "this is a tiny change".
@@ -79,8 +108,8 @@ And know where the Dynatrace knowledge comes from — but **do not stockpile it*
 4 VALIDATE    DQL on live tenant + data-shape assert     → real records shown to the user
               + lint + security & quality review
 5 RUN/DEPLOY  dt-app dev → dt-app deploy                 → ⛔ USER APPROVAL GATE before deploy
-6 PUBLISH     bump version → CHANGELOG → README + page → ⛔ USER APPROVAL GATE before push
-              → sanitize → commit → push → tag
+6 PUBLISH     bump app.version → CHANGELOG → README + page  → ⛔ USER APPROVAL GATE
+              → sanitize → commit → push
 ```
 
 Three gates are hard stops. Never cross them on your own initiative.

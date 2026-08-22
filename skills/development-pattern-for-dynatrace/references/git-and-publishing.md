@@ -205,7 +205,6 @@ Each time the user agrees to push, all of this lands in **one commit**:
 5. **README.** If setup, scopes, features or **cost** changed, the README changes too.
 6. **Page.** `docs/index.html` mirrors the README's substance — do not let them drift.
 7. **Sanitize + scan.** Every time, on the staged content.
-8. **Tag.** `git tag -a v<version>` and push the tag with the commit.
 
 A README that describes last month's app is a bug report waiting to happen, and a version
 that never moves makes every deployment indistinguishable from the last.

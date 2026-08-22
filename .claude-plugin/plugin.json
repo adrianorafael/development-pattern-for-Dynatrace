@@ -1,6 +1,6 @@
 {
   "name": "development-pattern-for-dynatrace",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Guardrails for building native Dynatrace Apps with an AI coding agent: Strato-only UI, no invented APIs, DQL validated against a live tenant, verified chart data shapes, secret-safe publishing, and the README/GitHub Pages standard.",
   "author": {
     "name": "adrianorafael",

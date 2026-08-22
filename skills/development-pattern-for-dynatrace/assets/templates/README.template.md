@@ -213,7 +213,7 @@ breaking **for the person running the app**:
 | **PATCH** | Bug fix, copy, styling, dependency bump, query optimized with identical results |
 
 - `app.config.json` → `app.version` is the single source of truth.
-- Every release is tagged `v<version>` and recorded in [CHANGELOG.md](CHANGELOG.md).
+- Every release is recorded in [CHANGELOG.md](CHANGELOG.md).
 - The same version is never published twice.
 
 **Current version:** see [`app.config.json`](app.config.json).

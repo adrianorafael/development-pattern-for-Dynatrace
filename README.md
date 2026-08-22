@@ -147,28 +147,77 @@ Without MCP the skill still works — it simply labels every unvalidated query
 
 ## How to Use It
 
-Once installed, the skill triggers on its own when you mention a Dynatrace App, `dt-app`,
-Strato, AppEngine, DQL or Grail. You can also invoke it explicitly.
+**Load it with your first prompt about the app, then just build.** The skill triggers on its
+own when you mention a Dynatrace App, `dt-app`, Strato, AppEngine, DQL or Grail — or invoke
+it by name.
 
 ```
 "Build me a Dynatrace app that shows Kubernetes workload health by namespace."
 ```
 
-The agent will then, in order:
+That one sentence starts the whole pipeline. You do not have to ask for a spec, and you do
+not have to remember to ask for a review at the end.
 
-1. **Ask the five bootstrap questions** — repository, target tenant, MCP availability, app
-   identity, publication intent — in one batch.
-2. **Research** `developer.dynatrace.com` depth-first, following in-page links, and record
-   an evidence log of what it actually read.
-3. **Write `specs/<slug>.md`** and stop for your approval — including the exact DQL, the
-   chosen visualization *and why that one*, the data contract, and the cost estimate.
-4. **Build** with Strato only, verifying every component and prop against `node_modules`.
-5. **Validate** — execute the DQL, show you the real records, assert the data shape, run
-   `tsc`, ESLint and the security review.
-6. **Run, deploy, publish** — each behind an explicit gate, with a sanitize pass before Git.
+### Strict at the edges, free in the middle
 
-Add [`AGENTS.template.md`](skills/development-pattern-for-dynatrace/assets/templates/AGENTS.template.md)
-to your app repository as `AGENTS.md` so future sessions pick the pattern up automatically.
+This is the part that matters, and it is the opposite of what "twelve rules" sounds like:
+
+| | What happens | Who drives |
+| --- | --- | --- |
+| **Front-load** | Bootstrap questions → the docs are read **live** → `specs/<slug>.md` → ⛔ your approval | The skill. No implementation code exists yet. |
+| **Middle** | Build it. Iterate, change direction, throw work away. | **You.** This is the vibecoding, and the skill stays out of the way — it only holds the invariants: Strato only, verified APIs, no secrets. |
+| **Back-load** | The finished code is verified: DQL executed, data shapes asserted, security and quality review, cost measured, version bumped, docs updated → ⛔ your approval → push | The skill. Every item, against the code that actually exists. |
+
+The goal is not to make building slow. It is to make the **beginning deliberate** and the
+**end verified**, so the fast part in between stays fast without quietly accruing debt.
+
+### What a session actually looks like
+
+**1 — You ask.**
+
+> Build me a Dynatrace app that shows Kubernetes workload health by namespace.
+
+**2 — Five questions, in one batch.** Repository? Target tenant? Is the MCP server
+connected? App name, `app.id` and starting version? Will this be a public repo with a
+GitHub Pages site? Every later decision refers back to these instead of re-asking.
+
+**3 — The documentation is read, not recalled.** `developer.dynatrace.com` — design,
+components, data visualizations, patterns, foundations — followed depth-first through
+in-page links, plus `docs.dynatrace.com` for platform behaviour, plus Dynatrace's own agent
+skills fetched fresh for DQL and Grail semantics. Everything lands in an evidence log:
+claim → source → verified.
+
+**4 — A one-page spec, then a stop.** `specs/k8s-workload-health.md`: the goal, the exact
+DQL and whether it has been executed, the scopes and what justifies each, the Strato
+components and **why that chart for this data**, the data contract with a real sample row,
+the four states, the DPS cost estimate, and the evidence log.
+
+> Here's the spec. Two decisions I need from you: whether unhealthy means `CrashLoopBackOff`
+> only or any non-Running phase, and whether auto-refresh should default on. The DQL is
+> validated — it returned 43 records over the last 24h. Approve and I'll build it.
+
+If you answer *"just build it"*, that is a valid answer — it is recorded as approved without
+review and the work proceeds. The gate is about consent, not ceremony.
+
+**5 — Now the vibe coding.** Build, iterate, change your mind. The skill is not narrating
+rules at you here. It is holding three lines you cannot cross without being told: it will
+not import a non-Strato component, it will not use a prop it has not verified in
+`node_modules`, and it will not put a tenant URL in a tracked file.
+
+**6 — The finished code is verified.** `tsc`, ESLint with the security rules, `dt-app build`.
+The DQL executed against your tenant with real records shown to you. The data shape printed
+and asserted before it reaches a chart. The screen opened in a browser and actually looked
+at. The monotony test. The security and quality checklist, read adversarially.
+
+**7 — Version and docs, then push.** `app.config.json` → `app.version` bumped at the right
+level, a CHANGELOG entry, README and project page updated to match — all in the same commit
+as the code. Sanitize pass, secret scan, then it names the version and asks before pushing.
+
+### Set it up once per repository
+
+Drop [`AGENTS.template.md`](skills/development-pattern-for-dynatrace/assets/templates/AGENTS.template.md)
+into your app repository as `AGENTS.md` so future sessions inherit the pattern — including
+the traps you have already hit — instead of starting level.
 
 ## The Twelve Rules
 
@@ -198,7 +247,7 @@ to your app repository as `AGENTS.md` so future sessions pick the pattern up aut
               + lint + security & quality review
 5 RUN/DEPLOY  dt-app dev → dt-app deploy                 → ⛔ USER APPROVAL GATE before deploy
 6 PUBLISH     bump version → CHANGELOG → README + page → ⛔ USER APPROVAL GATE before push
-              → sanitize → commit → push → tag
+              → sanitize → commit → push
 ```
 
 ## What It Prevents
@@ -360,10 +409,12 @@ This skill follows [Semantic Versioning](https://semver.org/) — the same stand
 requires of the apps it helps you build. "Breaking" means breaking for the person *using*
 the skill: a rule renumbered, a reference removed, a template's contract changed.
 
-- `.claude-plugin/plugin.json` → `version` is the single source of truth.
-- Every release is recorded in [CHANGELOG.md](CHANGELOG.md) and tagged `v<version>`.
+- `.claude-plugin/plugin.json` → `version` is the single source of truth — a config file,
+  the same way `app.config.json` → `app.version` is for an app.
+- Every release is recorded in [CHANGELOG.md](CHANGELOG.md).
 
-**Current version: 1.1.0** — adds R12, and stops vendoring the Dynatrace docs.
+**Current version: 1.2.0** — documents how the skill is used across a session, and
+states versioning as a config-file concern rather than a git-tag one.
 
 ## Keeping It Current
 

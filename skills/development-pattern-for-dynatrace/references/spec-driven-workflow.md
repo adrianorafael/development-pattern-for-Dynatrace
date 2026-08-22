@@ -35,7 +35,11 @@ The five questions from `SKILL.md`, asked **in one batch**:
 4. App identity — display name, `app.id` (`my.*` for unsigned), icon
 5. Publication — public repo + GitHub Pages?
 
-Then: install the official Dynatrace skills, arm `.gitignore`, run the first secret scan.
+Plus the app's **starting version** (`0.1.0` for a new demonstration app).
+
+Then: arm `.gitignore`, run the first secret scan. Dynatrace's own skills are **referenced,
+not installed** — fetched on demand when a DQL or Grail question comes up
+([dql-and-mcp.md](dql-and-mcp.md)).
 
 ---
 
@@ -158,7 +162,7 @@ The version and the docs are **part of the change**, not follow-up work (R12):
 5. Sanitize sweep + secret scan on the staged content (R1).
 6. Show the user the sanitize diff, the file list, and **the version**.
 7. Commit everything together — no AI co-authorship (R10).
-8. Push to the repository agreed in Phase 0, then tag `v<version>`.
+8. Push to the repository agreed in Phase 0.
 
 Details: [release-and-docs-sync.md](release-and-docs-sync.md) and
 [git-and-publishing.md](git-and-publishing.md).

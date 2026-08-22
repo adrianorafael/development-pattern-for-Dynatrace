@@ -147,6 +147,7 @@
   <div class="wrap">
     <div class="brand"><img src="icon.svg" alt="" /> Development Pattern</div>
     <div class="nav-links">
+      <a href="#usage">How it works</a>
       <a href="#rules">Rules</a>
       <a href="#release">Release</a>
       <a href="#pipeline">Pipeline</a>
@@ -222,6 +223,71 @@
   </div>
 </section>
 
+<section id="usage">
+  <div class="wrap">
+    <div class="sec-head"><span class="kicker">How it works in practice</span>
+      <h2>Strict at the edges, free in the middle</h2>
+      <p>Load it with your first prompt about the app, then just build. The point is not to
+         make building slow — it is to make the beginning deliberate and the end verified, so
+         the fast part in between stays fast without quietly accruing debt.</p></div>
+
+    <div class="grid">
+      <div class="card"><span class="ico">🎯</span><h3>Front-load</h3>
+        <p>Five bootstrap questions in one batch, the documentation URLs read <b>live</b>,
+           then a one-page spec — and a stop for your approval. No implementation code
+           exists yet.</p>
+        <div class="meta">Driven by the skill</div></div>
+      <div class="card"><span class="ico">⚡</span><h3>The middle — your vibe coding</h3>
+        <p>Build it. Iterate, change direction, throw work away. The skill is not narrating
+           rules at you here; it holds three invariants: Strato only, no unverified API, no
+           secret in a tracked file.</p>
+        <div class="meta">Driven by <b>you</b></div></div>
+      <div class="card"><span class="ico">🔍</span><h3>Back-load</h3>
+        <p>The finished code is verified: DQL executed, data shapes asserted, security and
+           quality review, cost measured, version bumped, docs updated — then a stop before
+           the push.</p>
+        <div class="meta">Driven by the skill</div></div>
+    </div>
+
+    <p class="note" style="margin-top:30px"><b>What a session actually looks like</b></p>
+<pre><span class="c">1 — You ask</span>
+"Build me a Dynatrace app that shows Kubernetes workload health by namespace."
+
+<span class="c">2 — Five questions, one batch</span>
+Repository? Target tenant? MCP connected? App name, id and starting version?
+Public repo with a Pages site?          <span class="c"># every later decision refers back to these</span>
+
+<span class="c">3 — The docs are read, not recalled</span>
+developer.dynatrace.com — design, components, data visualizations, patterns,
+foundations — followed depth-first through in-page links; docs.dynatrace.com for
+platform behaviour; Dynatrace's own agent skills fetched fresh for DQL semantics.
+<span class="k">→ evidence log: claim → source → verified</span>
+
+<span class="c">4 — A one-page spec, then a stop</span>
+specs/k8s-workload-health.md — goal, the exact DQL and whether it ran, scopes and
+what justifies each, the Strato components and <span class="k">why that chart for this data</span>,
+the data contract with a real sample row, the four states, the DPS estimate.
+<span class="r">⛔ waits for your approval</span>
+
+<span class="c">5 — Now the vibe coding</span>
+Build. Iterate. Change your mind.       <span class="c"># the skill stays out of the way</span>
+
+<span class="c">6 — The finished code is verified</span>
+tsc · eslint · dt-app build · DQL executed with real records shown to you ·
+data shape printed and asserted · the screen opened and looked at ·
+the monotony test · the security and quality checklist
+
+<span class="c">7 — Version and docs, then push</span>
+app.config.json → app.version bumped · CHANGELOG entry · README and this page
+updated — all in the same commit · sanitize · secret scan
+<span class="r">⛔ names the version, then asks</span></pre>
+
+    <div class="callout">If you answer <i>"just build it"</i> at step 4, that is a valid
+      answer — it is recorded as approved without review and the work proceeds. The gate is
+      about consent, not ceremony.</div>
+  </div>
+</section>
+
 <section id="rules">
   <div class="wrap">
     <div class="sec-head">
@@ -267,7 +333,7 @@
               + lint + security &amp; quality review
 5 <span class="k">RUN/DEPLOY</span>  dt-app dev → dt-app deploy                 <span class="r">→ ⛔ USER APPROVAL GATE before deploy</span>
 6 <span class="k">PUBLISH</span>     bump version → CHANGELOG → README + page   <span class="r">→ ⛔ USER APPROVAL GATE before push</span>
-              → sanitize → commit → push → tag</pre>
+              → sanitize → commit → push</pre>
     <div class="callout">Phase 0 asks five questions in one batch — repository, target tenant,
       MCP availability, app identity, publication intent — and every later decision refers back
       to those answers instead of re-asking.</div>
@@ -319,9 +385,10 @@
 <section id="release">
   <div class="wrap">
     <div class="sec-head"><span class="kicker">R12</span><h2>Release &amp; docs sync</h2>
-      <p>The version and the documentation are part of the change, not follow-up work.
-         A commit that changes behaviour without bumping the version and updating the docs
-         is an incomplete commit.</p></div>
+      <p>The version lives in <code>app.config.json</code> → <code>app.version</code> — the
+         config file Dynatrace reads at install time, not a git tag. The version and the
+         documentation are part of the change, not follow-up work: a commit that changes
+         behaviour without bumping one and updating the other is an incomplete commit.</p></div>
     <div class="two-col">
       <div class="card"><h3>Semantic versioning, in app terms</h3>
         <p>"Breaking" means breaking for the person <i>running</i> the app — not for a
@@ -340,7 +407,8 @@
           <li>Never publish the same version twice — once a build reaches a tenant, that
               version is spent</li>
           <li>Bump in the <b>same commit</b> as the change, never in a separate "bump" commit</li>
-          <li>Tag what you publish: <code>git tag -a v1.2.0</code></li>
+          <li>One source of truth: <code>app.config.json</code> → <code>app.version</code>.
+              The CHANGELOG, the README and this page must all agree with it</li>
         </ul>
         <div class="meta">The one people get wrong: <b>adding an OAuth scope is MAJOR</b> —
           every existing user hits a consent screen on next load, however small the diff.</div></div>
@@ -382,7 +450,7 @@
       <span class="chip"><b>App State</b> &amp; Document services</span>
       <span class="chip"><b>Dynatrace MCP</b> server</span>
       <span class="chip"><b>Agent Skills</b> open format</span>
-      <span class="chip"><b>v1.1.0</b> — <a href="https://github.com/adrianorafael/development-pattern-for-Dynatrace/blob/main/CHANGELOG.md">changelog</a></span>
+      <span class="chip"><b>v1.2.0</b> — <a href="https://github.com/adrianorafael/development-pattern-for-Dynatrace/blob/main/CHANGELOG.md">changelog</a></span>
     </div>
     <div class="callout" style="margin-top:26px">
       <b>Version reality check.</b> As of Strato 3.x,

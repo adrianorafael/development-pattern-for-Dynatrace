@@ -29,8 +29,8 @@ Its twelve non-negotiable rules apply to every change in this repository, includ
 - **Scopes:** see `app.config.json`; each one carries a justification comment
 - **Persistence:** `<App State key / none>` — App State is capped at 400 KB per tenant
 - **Auto-refresh default:** `<off / interval>` — the dominant DPS cost driver
-- **Version:** `app.config.json` → `app.version` is the single source of truth; releases are
-  tagged `v<version>` and recorded in `CHANGELOG.md`
+- **Version:** `app.config.json` → `app.version` is the single source of truth; every
+  release is recorded in `CHANGELOG.md`
 
 ## Traps already hit in this repository
 

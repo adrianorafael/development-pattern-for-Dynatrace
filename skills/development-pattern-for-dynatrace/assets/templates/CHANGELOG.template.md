@@ -8,7 +8,8 @@ the person running the app — see
 `references/release-and-docs-sync.md` in
 [Development Pattern for Dynatrace](https://github.com/adrianorafael/development-pattern-for-Dynatrace).
 
-The version here must match `app.config.json` → `app.version`.
+The version here must match `app.config.json` → `app.version`, which is the single source
+of truth.
 
 <!--
   Write entries for the person running the app, not the person who wrote the diff.
@@ -41,8 +42,7 @@ The version here must match `app.config.json` → `app.version`.
 - First release.
 
 <!--
-  Link references, so version headings become links to the compare view.
+  Optional: if the project also creates git tags or GitHub Releases, add link references
+  here so version headings become links. Not required -- app.config.json is the source of
+  truth for the version either way.
 -->
-[Unreleased]: https://github.com/<user>/<App-Name>-for-Dynatrace/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/<user>/<App-Name>-for-Dynatrace/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/<user>/<App-Name>-for-Dynatrace/releases/tag/v1.0.0
