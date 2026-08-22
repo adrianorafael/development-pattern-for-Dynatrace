@@ -8,23 +8,46 @@ is right — and a wrong query rarely errors loudly. It returns nothing, or the 
 
 ---
 
-## Step 1 — Install the official Dynatrace knowledge locally
+## Step 1 — Read the official Dynatrace knowledge, fresh, at the moment you need it
 
-Before writing DQL, get the authoritative reference onto disk. These are Dynatrace's own
-skill packages, maintained by Dynatrace, in plain Markdown.
+Dynatrace publishes its own agent skills at
+**https://github.com/Dynatrace/dynatrace-for-ai** — plain Markdown, maintained by
+Dynatrace, authoritative for DQL syntax, Grail semantics, entity models and platform costs.
+
+**Reference them. Do not vendor them.**
+
+This skill deliberately ships **no copy** of that content, and neither should your project.
+Dynatrace updates those files — DQL gains functions, semantic dictionaries change, cost
+guidance shifts — and a copy taken during one session is stale by the next. A stale copy is
+worse than no copy, because it looks authoritative while being wrong.
+
+So: **fetch the specific file you need, at the moment you need it, every time.**
 
 ```bash
-# preferred
-npx skills add dynatrace/dynatrace-for-ai
+# Read one skill directly from the source. Nothing persists.
+curl -sSL https://raw.githubusercontent.com/Dynatrace/dynatrace-for-ai/main/skills/dt-dql-essentials/SKILL.md
 
-# or, as a Claude Code plugin (also wires up the MCP server)
-claude plugin marketplace add dynatrace/dynatrace-for-ai
-claude plugin install dynatrace@dynatrace-for-ai
-
-# or a plain clone into a gitignored directory
-git clone --depth 1 https://github.com/Dynatrace/dynatrace-for-ai .dynatrace-ai-skills
-echo ".dynatrace-ai-skills/" >> .gitignore
+# ...then the reference it routes you to
+curl -sSL https://raw.githubusercontent.com/Dynatrace/dynatrace-for-ai/main/skills/dt-dql-essentials/references/semantic-dictionary.md
 ```
+
+In an agent with web access, fetching the GitHub URL directly is equivalent and preferable.
+
+Rules for handling them:
+
+- **Never commit them** to the app repository — not as a vendored directory, not as a
+  quoted excerpt presented as current truth.
+- **Never cache them across sessions.** If you must write to disk, write to a temp path
+  outside the repository and treat it as valid for this task only.
+- **Re-fetch when the task changes.** Reading `dt-dql-essentials` an hour ago does not
+  cover the `dt-obs-kubernetes` question you are on now.
+- **Cite the commit or the date** when a claim in a spec's evidence log depends on one.
+
+If the developer has separately installed them into their own agent
+(`npx skills add dynatrace/dynatrace-for-ai`, or the Claude Code plugin), that is their
+environment's business — use what is loaded, and still prefer a fresh fetch when a claim is
+load-bearing. What must not happen is *this* skill or *your app repository* carrying a
+frozen copy.
 
 The ones that matter most here:
 
@@ -41,6 +64,19 @@ The ones that matter most here:
 
 Read the relevant `SKILL.md` **and** the `references/*.md` it routes you to. Its
 `references/semantic-dictionary.md` is the answer to "what is this field actually called".
+
+The path pattern is stable even though the catalogue is not:
+
+```
+https://raw.githubusercontent.com/Dynatrace/dynatrace-for-ai/main/skills/<skill>/SKILL.md
+https://raw.githubusercontent.com/Dynatrace/dynatrace-for-ai/main/skills/<skill>/references/<file>.md
+```
+
+**The list above is a snapshot, not the catalogue.** Dynatrace adds and renames skills.
+When you need one that is not listed — or want to confirm a name — read the repository's
+own README first:
+`https://raw.githubusercontent.com/Dynatrace/dynatrace-for-ai/main/README.md`.
+That is the live index; this table is a shortcut that will drift.
 
 ---
 

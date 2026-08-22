@@ -3,6 +3,8 @@
 **Status:** draft | ⛔ awaiting approval | approved | implemented
 **Date:** YYYY-MM-DD
 **App:** `<App Name> for Dynatrace`
+**Ships in version:** `<x.y.z>` — bump level `<MAJOR | MINOR | PATCH>`, because `<reason>`
+(a new scope is always MAJOR — every user must re-consent). See `release-and-docs-sync.md`.
 
 ---
 
@@ -131,6 +133,14 @@ Mitigations applied: `<projected fields / narrow default / refresh off by defaul
 | | | ❓ |
 
 > ❓ rows may not appear in shipped code. Verify them or design around them.
+
+## Docs impact (R12)
+
+| Target | Change needed |
+| --- | --- |
+| `README.md` | `<which sections — or "none, and here is why">` |
+| `docs/index.html` | `<must mirror the README>` |
+| `CHANGELOG.md` | `<the entry, written for the app's user>` |
 
 ## Open questions
 

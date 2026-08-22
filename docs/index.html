@@ -148,6 +148,7 @@
     <div class="brand"><img src="icon.svg" alt="" /> Development Pattern</div>
     <div class="nav-links">
       <a href="#rules">Rules</a>
+      <a href="#release">Release</a>
       <a href="#pipeline">Pipeline</a>
       <a href="#prevents">What it prevents</a>
       <a href="#install">Install</a>
@@ -166,17 +167,18 @@
     <p class="subtitle">
       Keeps an AI coding agent inside the Dynatrace world: Strato-only UI, no invented APIs,
       DQL executed against a real tenant before it ships, verified chart data shapes,
-      and nothing sensitive reaching your repository.
+      a version and docs that move with every release, and nothing sensitive reaching your
+      repository.
     </p>
     <div class="cta">
       <a class="btn btn-primary" href="#install">Install it</a>
       <a class="btn btn-ghost" href="https://github.com/adrianorafael/development-pattern-for-Dynatrace">View on GitHub</a>
     </div>
     <div class="stats">
-      <div class="stat"><div class="num">11 rules</div><div class="lbl">non-negotiable</div></div>
+      <div class="stat"><div class="num">12 rules</div><div class="lbl">non-negotiable</div></div>
       <div class="stat"><div class="num">6 phases</div><div class="lbl">3 approval gates</div></div>
-      <div class="stat"><div class="num">10 references</div><div class="lbl">loaded on demand</div></div>
-      <div class="stat"><div class="num">9 templates</div><div class="lbl">+ a secret scanner</div></div>
+      <div class="stat"><div class="num">12 references</div><div class="lbl">loaded on demand</div></div>
+      <div class="stat"><div class="num">10 templates</div><div class="lbl">+ a secret scanner</div></div>
     </div>
   </div>
   <div class="wrap">
@@ -224,7 +226,7 @@
   <div class="wrap">
     <div class="sec-head">
       <span class="kicker">The contract</span>
-      <h2>Eleven non-negotiable rules</h2>
+      <h2>Twelve non-negotiable rules</h2>
       <p>Stated as absolutes on purpose. "Prefer Strato where reasonable" becomes, in practice,
          "use Strato until something is mildly inconvenient".</p>
     </div>
@@ -243,6 +245,7 @@
           <tr><td class="rule-id">R9</td><td><b>Review AI-written code like hostile code</b>, against a security and quality checklist.</td><td>Fluent code that is quietly wrong</td></tr>
           <tr><td class="rule-id">R10</td><td><b>No AI co-authorship</b> in commits, PRs, README, page or comments — unless you ask for it.</td><td>Attribution you didn't want</td></tr>
           <tr><td class="rule-id">R11</td><td><b>Naming convention <code>&lt;App Name&gt; for Dynatrace</code></b> for repository, README, page and Hub listing.</td><td>Inconsistent public identity</td></tr>
+          <tr><td class="rule-id">R12</td><td><b>The version and the docs move with the app.</b> Every publication bumps <code>app.version</code> per SemVer; every push that changes behaviour, setup or cost updates the README <b>and</b> this page in the same commit.</td><td>Docs nobody trusts, versions that mean nothing</td></tr>
         </tbody>
       </table>
     </div>
@@ -263,7 +266,8 @@
 4 <span class="k">VALIDATE</span>    DQL on live tenant + data-shape assert     <span class="c">→ real records shown to you</span>
               + lint + security &amp; quality review
 5 <span class="k">RUN/DEPLOY</span>  dt-app dev → dt-app deploy                 <span class="r">→ ⛔ USER APPROVAL GATE before deploy</span>
-6 <span class="k">PUBLISH</span>     sanitize → commit → push → README + page    <span class="r">→ ⛔ USER APPROVAL GATE before push</span></pre>
+6 <span class="k">PUBLISH</span>     bump version → CHANGELOG → README + page   <span class="r">→ ⛔ USER APPROVAL GATE before push</span>
+              → sanitize → commit → push → tag</pre>
     <div class="callout">Phase 0 asks five questions in one batch — repository, target tenant,
       MCP availability, app identity, publication intent — and every later decision refers back
       to those answers instead of re-asking.</div>
@@ -299,12 +303,69 @@
         <p>A screen is checked for a headline layer, bars for categories, rankings as a
           <code>TopList</code>, at most one pie. But variety is never the goal — fit is: three
           genuinely different time series stay three line charts.</p></div>
+      <div class="beh b-purple"><h3>🟣 Nothing is vendored</h3>
+        <p>The skill carries no copy of the Dynatrace docs or of Dynatrace's own agent
+          skills — only their URLs, opened live during the session. A copy taken last week
+          looks authoritative while being wrong, so there is no copy to go stale.</p></div>
       <div class="beh b-green"><h3>🟢 Sanitize, then commit</h3>
         <p><code>scan-secrets.sh</code> runs over the working tree <i>and</i> the staged diff,
           catching Dynatrace tokens, tenant URLs and IDs, entity IDs, private keys and hardcoded
           credentials — plus structural checks for tracked <code>.env</code> and
           <code>.dt-app/</code>.</p></div>
     </div>
+  </div>
+</section>
+
+<section id="release">
+  <div class="wrap">
+    <div class="sec-head"><span class="kicker">R12</span><h2>Release &amp; docs sync</h2>
+      <p>The version and the documentation are part of the change, not follow-up work.
+         A commit that changes behaviour without bumping the version and updating the docs
+         is an incomplete commit.</p></div>
+    <div class="two-col">
+      <div class="card"><h3>Semantic versioning, in app terms</h3>
+        <p>"Breaking" means breaking for the person <i>running</i> the app — not for a
+           library consumer.</p>
+        <ul class="tick">
+          <li><b>MAJOR</b> — a scope changed (everyone re-consents) · persisted state format
+              changed without migration · a feature removed · a default that raises cost</li>
+          <li><b>MINOR</b> — new view, chart, filter or setting; nothing existing breaks</li>
+          <li><b>PATCH</b> — bug fix, copy, styling, dependency bump, query optimized with
+              identical results</li>
+        </ul>
+        <div class="meta">A demonstration app belongs on <code>0.x</code>. Reaching
+          <code>1.0.0</code> is a claim about stability — don't make it by accident.</div></div>
+      <div class="card"><h3>Three rules that make a version trustworthy</h3>
+        <ul class="tick">
+          <li>Never publish the same version twice — once a build reaches a tenant, that
+              version is spent</li>
+          <li>Bump in the <b>same commit</b> as the change, never in a separate "bump" commit</li>
+          <li>Tag what you publish: <code>git tag -a v1.2.0</code></li>
+        </ul>
+        <div class="meta">The one people get wrong: <b>adding an OAuth scope is MAJOR</b> —
+          every existing user hits a consent screen on next load, however small the diff.</div></div>
+    </div>
+
+    <p class="note" style="margin-top:26px"><b>What triggers what</b> — the matrix the agent
+      walks before every push</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>The change</th><th>README</th><th>Page</th><th>Version</th><th>CHANGELOG</th></tr></thead>
+        <tbody>
+          <tr><td>New feature or view</td><td>✅ App Features</td><td>✅ Features + stats</td><td>MINOR</td><td>✅</td></tr>
+          <tr><td>New or changed OAuth scope</td><td>✅ Scopes table</td><td>✅ Scopes table</td><td><span class="tag red">MAJOR</span></td><td>✅</td></tr>
+          <tr><td>Auto-refresh or timeframe default changed</td><td>✅ <b>Cost</b></td><td>✅ <b>Cost</b></td><td>MAJOR if cost rises</td><td>✅</td></tr>
+          <tr><td>Query optimized (fewer bytes scanned)</td><td>✅ Cost figures</td><td>✅ Cost figures</td><td>PATCH</td><td>✅</td></tr>
+          <tr><td>New setup step or placeholder</td><td>✅ Installation</td><td>✅ Quick start</td><td>MINOR / PATCH</td><td>✅</td></tr>
+          <tr><td>New known limitation</td><td>✅ Behaviors</td><td>✅ How it works</td><td>—</td><td>✅</td></tr>
+          <tr><td>Internal refactor, no behaviour change</td><td>—</td><td>—</td><td>PATCH</td><td>optional</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">The README and the page are one document at two depths. They must
+      agree on the disclaimer, the scopes, the cost figures, the troubleshooting rows and
+      <b>the version</b>. Divergence is invisible until a reader notices the page promises a
+      feature the README has never heard of.</div>
   </div>
 </section>
 
@@ -345,12 +406,16 @@
           <li>Node.js ≥ 18 and npm ≥ 9 for <code>dt-app</code></li>
           <li>A Dynatrace environment with <b>Grail</b></li>
           <li><i>Recommended:</i> the Dynatrace MCP server or dtctl, so DQL can be validated</li>
+          <li>Network access to <code>developer.dynatrace.com</code>,
+              <code>docs.dynatrace.com</code> and GitHub</li>
         </ul></div>
-      <div class="card"><h3>Pair it with the official skills</h3>
-        <p>This skill covers <i>how to build and publish an app</i>. Dynatrace's own skills cover
-          <i>what the data means</i> — DQL semantics, Grail entities, problems, logs, costs.
-          Install both; this one routes to them.</p>
-        <div class="meta"><code>npx skills add dynatrace/dynatrace-for-ai</code></div></div>
+      <div class="card"><h3>The Dynatrace docs are referenced, not bundled</h3>
+        <p>This skill covers <i>how to build and publish an app</i>. Dynatrace's own skills
+          cover <i>what the data means</i> — DQL semantics, Grail entities, costs. It ships
+          <b>no copy</b> of them: they change between your sessions, and a stale copy looks
+          authoritative while being wrong. It fetches the file it needs, when it needs it.</p>
+        <div class="meta">Works best where <code>developer.dynatrace.com</code>,
+          <code>docs.dynatrace.com</code> and GitHub are reachable — i.e. your editor.</div></div>
     </div>
 <pre style="margin-top:20px"><span class="c"># Skills package (recommended)</span>
 npx skills add adrianorafael/development-pattern-for-Dynatrace
@@ -449,9 +514,10 @@ DT_PLATFORM_TOKEN=dt0s16.YOUR-PLATFORM-TOKEN</pre>
 <section id="structure">
   <div class="wrap">
     <div class="sec-head"><span class="kicker">Codebase</span><h2>What's in the box</h2>
-      <p>A <code>SKILL.md</code>, ten references loaded on demand, nine templates and a scanner.</p></div>
+      <p>A <code>SKILL.md</code>, twelve references loaded on demand, ten templates and a
+         scanner — and no vendored copy of anyone else's docs.</p></div>
 <pre>skills/development-pattern-for-dynatrace/
-├── <span class="k">SKILL.md</span>                              <span class="c"># the eleven rules, the pipeline, routing</span>
+├── <span class="k">SKILL.md</span>                              <span class="c"># the twelve rules, the pipeline, routing</span>
 ├── references/
 │   ├── security-and-secrets.md           <span class="c"># R1 — gitignore, placeholders, scanning, rotation</span>
 │   ├── verification-protocol.md          <span class="c"># R2 — source hierarchy, commands, evidence log</span>
@@ -463,9 +529,11 @@ DT_PLATFORM_TOKEN=dt0s16.YOUR-PLATFORM-TOKEN</pre>
 │   ├── app-lifecycle.md                  <span class="c"># dt-app commands, scopes, deploy, troubleshooting</span>
 │   ├── code-review-checklist.md          <span class="c"># R9 — the pre-push review</span>
 │   ├── git-and-publishing.md             <span class="c"># R1, R10, R11 — commit, push, publish</span>
+│   ├── release-and-docs-sync.md          <span class="c"># R12 — SemVer, CHANGELOG, docs sync matrix</span>
 │   └── readme-and-page.md                <span class="c"># the README + GitHub Pages standard</span>
 └── assets/
-    ├── templates/                        <span class="c"># gitignore, eslint, app.config, spec, README, page, AGENTS, hook</span>
+    ├── templates/                        <span class="c"># gitignore, eslint, app.config, env, spec,</span>
+    │                                     <span class="c">#   README, page, AGENTS, CHANGELOG, pre-commit</span>
     └── scripts/scan-secrets.sh           <span class="c"># the pre-commit scanner</span></pre>
     <p class="note">Run the scanner directly, any time:</p>
 <pre>bash skills/development-pattern-for-dynatrace/assets/scripts/scan-secrets.sh
@@ -498,6 +566,15 @@ git diff --cached | bash skills/development-pattern-for-dynatrace/assets/scripts
               <td>Because R2 forbids guessing. When a package isn't installed and the docs are
                   unreachable, the skill's instruction is to say so and offer two unblocks rather
                   than emit a plausible-looking prop.</td></tr>
+          <tr><td>Does it bundle the Dynatrace documentation?</td>
+              <td>No, deliberately. It carries <b>URLs</b> — every design, components,
+                  data-visualization, icons, patterns, foundations, AppEngine, guides,
+                  security and code-optimization page — and opens them live during the
+                  session. Nothing to go stale, nothing to re-sync.</td></tr>
+          <tr><td>Why does it insist on bumping the version?</td>
+              <td>Because three deploys all reporting <code>1.0.0</code> make it impossible
+                  to tell which build is running in which tenant. The bump, the CHANGELOG
+                  entry and the doc updates land in the same commit as the code.</td></tr>
           <tr><td>Is this official Dynatrace tooling?</td>
               <td>No. It is an independent, unaffiliated project. Dynatrace's own agent skills
                   live at <a href="https://github.com/Dynatrace/dynatrace-for-ai">Dynatrace/dynatrace-for-ai</a>,

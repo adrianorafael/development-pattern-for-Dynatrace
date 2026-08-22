@@ -5,7 +5,7 @@
 This project is built under **[Development Pattern for Dynatrace](https://github.com/adrianorafael/development-pattern-for-Dynatrace)**.
 Load that skill before writing, reviewing, running, deploying or publishing any code here.
 
-Its eleven non-negotiable rules apply to every change in this repository, including
+Its twelve non-negotiable rules apply to every change in this repository, including
 "tiny" ones:
 
 1. Never publish a secret — no tokens, `.env`, tenant IDs or tenant URLs.
@@ -19,6 +19,8 @@ Its eleven non-negotiable rules apply to every change in this repository, includ
 9. Review AI-written code like hostile code.
 10. No AI co-authorship in commits, PRs, README or page.
 11. Naming convention: `<App Name> for Dynatrace`.
+12. Every publication bumps `app.version` (SemVer); every push that changes behaviour,
+    setup or cost updates the README **and** the project page in the same commit.
 
 ## Project specifics
 
@@ -27,6 +29,8 @@ Its eleven non-negotiable rules apply to every change in this repository, includ
 - **Scopes:** see `app.config.json`; each one carries a justification comment
 - **Persistence:** `<App State key / none>` — App State is capped at 400 KB per tenant
 - **Auto-refresh default:** `<off / interval>` — the dominant DPS cost driver
+- **Version:** `app.config.json` → `app.version` is the single source of truth; releases are
+  tagged `v<version>` and recorded in `CHANGELOG.md`
 
 ## Traps already hit in this repository
 
@@ -35,6 +39,13 @@ Its eleven non-negotiable rules apply to every change in this repository, includ
 - `@dynatrace/strato-components-preview` is deprecated — import from
   `@dynatrace/strato-components/<subpath>`.
 - `TimeseriesChart` needs `datapoints[].start` as a `Date`, not an ISO string.
+
+## Dynatrace knowledge: reference, never vendor
+
+Dynatrace's own agent skills (https://github.com/Dynatrace/dynatrace-for-ai) are the
+authority for DQL and Grail semantics. **Fetch the file you need at the moment you need
+it** — they change between sessions, and a stale copy looks authoritative while being
+wrong. Never commit one into this repository.
 
 ## Commands
 

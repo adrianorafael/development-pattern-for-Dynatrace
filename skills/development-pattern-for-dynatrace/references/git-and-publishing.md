@@ -193,15 +193,22 @@ Tell the user the exact clicks:
 
 ---
 
-## Keeping the repository current
+## Keeping the repository current (R12)
 
-Each time the user agrees to push, in this order:
+Each time the user agrees to push, all of this lands in **one commit**:
 
-1. **Sanitize + scan.** Every time.
-2. **Code.** The change itself.
-3. **Spec.** If behaviour changed, the spec changes in the same commit.
-4. **README.** If setup, scopes, features or **cost** changed, the README changes too.
-5. **Page.** `docs/index.html` mirrors the README's substance — do not let them drift.
-6. **Version.** Bump `app.config.json` → `app.version` for anything deployable.
+1. **Code.** The change itself.
+2. **Version.** Bump `app.config.json` → `app.version` per SemVer. Never publish the same
+   version twice; a new scope is a MAJOR bump even when the diff is three lines.
+3. **CHANGELOG.** A dated entry, written for the app's user, naming any cost or scope change.
+4. **Spec.** If behaviour changed, the spec in `specs/` changes with it.
+5. **README.** If setup, scopes, features or **cost** changed, the README changes too.
+6. **Page.** `docs/index.html` mirrors the README's substance — do not let them drift.
+7. **Sanitize + scan.** Every time, on the staged content.
+8. **Tag.** `git tag -a v<version>` and push the tag with the commit.
 
-A README that describes last month's app is a bug report waiting to happen.
+A README that describes last month's app is a bug report waiting to happen, and a version
+that never moves makes every deployment indistinguishable from the last.
+
+Full decision matrix — which change forces which doc update, and which bump level:
+→ [release-and-docs-sync.md](release-and-docs-sync.md)

@@ -242,11 +242,15 @@ Dark, Dynatrace-adjacent, self-contained:
 **These hex values are for the marketing page only.** They have nothing to do with the app:
 inside the app it is design tokens, always (R3).
 
-### README ↔ page consistency
+### README ↔ page consistency (R12)
 
 The page is not a rewrite. Same disclaimer, same scopes, same cost numbers, same
-troubleshooting rows. When one changes, both change **in the same commit**. Divergence
-between them is the most common rot in this pattern.
+troubleshooting rows, **same version**. When one changes, both change **in the same
+commit** — together with the version bump and the CHANGELOG entry. Divergence between them
+is the most common rot in this pattern.
+
+Which change forces which update, and at which SemVer level:
+→ [release-and-docs-sync.md](release-and-docs-sync.md)
 
 ---
 

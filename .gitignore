@@ -27,8 +27,11 @@
 /settings/local-mock-data/persistence/
 **/fixtures/*.local.json
 
-# Official Dynatrace AI skills, if cloned locally rather than installed
+# Safety net: the official Dynatrace AI skills must be fetched on demand, never
+# vendored. If anyone clones them here anyway, they still must not be committed --
+# a frozen copy goes stale and looks authoritative while being wrong.
 .dynatrace-ai-skills/
+dynatrace-for-ai/
 
 # Compiled output
 /dist

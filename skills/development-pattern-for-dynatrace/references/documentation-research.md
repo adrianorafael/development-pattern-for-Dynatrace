@@ -13,32 +13,47 @@ Two failure modes this prevents:
 
 ## The canonical source map
 
-`developer.dynatrace.com` is the only design and API authority for Dynatrace Apps.
-Docs sites reorganize; if a URL 404s, **navigate down from the section index rather than
-guessing a new path**, and update your evidence log with the URL that actually worked.
+`developer.dynatrace.com` is the only design and API authority for Dynatrace Apps, with
+`docs.dynatrace.com` covering platform and product behaviour behind it.
+
+**Fetch these at run time.** They are live URLs to be opened in the developer's own
+environment during the session — not a summary to quote from memory. If a URL 404s,
+**navigate down from the section index rather than guessing a new path**, and record the
+URL that actually worked in your evidence log.
 
 ### Design system — Strato
 
 | Topic | Entry point |
 | --- | --- |
-| Design system home | https://developer.dynatrace.com/design/ |
+| **Design system home** | https://developer.dynatrace.com/design/ |
 | About Strato | https://developer.dynatrace.com/design/about-strato-design-system/ |
-| Component catalogue | https://developer.dynatrace.com/design/components/ |
-| Components preview (legacy) | https://developer.dynatrace.com/design/components-preview/ |
-| Data visualizations | https://developer.dynatrace.com/design/data-visualizations/ |
+| **Component catalogue** | https://developer.dynatrace.com/design/components/ |
+| Components preview (legacy, deprecated) | https://developer.dynatrace.com/design/components-preview/ |
+| **Data visualizations** | https://developer.dynatrace.com/design/data-visualizations/ |
 | Data visualization basics | https://developer.dynatrace.com/design/foundations/data-visualization-basics/ |
-| Icons | https://developer.dynatrace.com/design/icons/ |
-| Patterns | https://developer.dynatrace.com/design/patterns/ |
-| App structure pattern | https://developer.dynatrace.com/design/patterns/app-structure/ |
+| **Icons** | https://developer.dynatrace.com/design/icons/ |
+| **Patterns** | https://developer.dynatrace.com/design/patterns/ |
+| Pattern — app structure | https://developer.dynatrace.com/design/patterns/app-structure/ |
+| Pattern — loading & saving | https://developer.dynatrace.com/design/patterns/loading-saving/ |
+| Foundation — layout | https://developer.dynatrace.com/design/foundations/layout/ |
+| Foundation — navigation | https://developer.dynatrace.com/design/foundations/navigation/ |
 | Layout | https://developer.dynatrace.com/design/layout/ |
 | Strato versioning | https://developer.dynatrace.com/design/strato-versioning/ |
+
+Read **loading & saving** before building any view that fetches or persists — it is the
+platform's answer to the four states (loading, empty, error, success) and to optimistic
+saves, and it is the pattern most often reinvented badly.
+
+Read **foundations/layout** and **foundations/navigation** before laying out a page or
+adding a route. They define the spacing scale and the navigation hierarchy that make an app
+feel native; guessing them is why an app "looks almost right" and nobody can say why.
 
 ### Platform & AppEngine
 
 | Topic | Entry point |
 | --- | --- |
 | Introduction to Dynatrace Apps | https://developer.dynatrace.com/introduction/ |
-| About AppEngine | https://developer.dynatrace.com/plan/about-appengine/ |
+| **About AppEngine** | https://developer.dynatrace.com/plan/about-appengine/ |
 | AppEngine platform service | https://developer.dynatrace.com/plan/platform-services/app-engine/ |
 | Get started / quickstart | https://developer.dynatrace.com/quickstart/ |
 | Improve visualizations tutorial | https://developer.dynatrace.com/quickstart/tutorial/improve-visualizations/ |
@@ -47,9 +62,9 @@ guessing a new path**, and update your evidence log with the URL that actually w
 
 | Topic | Entry point |
 | --- | --- |
-| Guides index | https://developer.dynatrace.com/develop/guides/ |
-| Security guides | https://developer.dynatrace.com/develop/guides/security/ |
-| Code optimization | https://developer.dynatrace.com/develop/guides/code-optimization/ |
+| **Guides index** | https://developer.dynatrace.com/develop/guides/ |
+| **Security guides** | https://developer.dynatrace.com/develop/guides/security/ |
+| **Code optimization** | https://developer.dynatrace.com/develop/guides/code-optimization/ |
 | Lazy loading | https://developer.dynatrace.com/develop/guides/code-optimization/lazy-loading/ |
 | Configure CSP rules | https://developer.dynatrace.com/develop/security/configure-csp-rules/ |
 | Custom CSP exceptions | https://developer.dynatrace.com/develop/security/custom-csp-exceptions/ |
@@ -69,11 +84,33 @@ guessing a new path**, and update your evidence log with the URL that actually w
 | Strato components | https://developer.dynatrace.com/release-notes/design-system/components-changelog/ |
 | Strato components preview | https://developer.dynatrace.com/release-notes/design-system/components-preview-changelog/ |
 
+### Dynatrace Docs — platform & product behaviour
+
+`developer.dynatrace.com` tells you how to build. **https://docs.dynatrace.com** tells you
+how the platform behaves, what it costs, and what the product already does.
+
+| Topic | Entry point |
+| --- | --- |
+| Docs home | https://docs.dynatrace.com |
+| AppEngine | https://docs.dynatrace.com/docs/platform/appengine |
+| AppEngine Functions (DPS licensing) | https://docs.dynatrace.com/docs/license/capabilities/appengine-functions |
+| Dynatrace MCP server | https://docs.dynatrace.com/docs/shortlink/dynatrace-mcp-server |
+| Credential vault | https://docs.dynatrace.com/docs/manage/credential-vault |
+| DPS / platform subscription | https://docs.dynatrace.com/docs/manage/dynatrace-platform-subscription |
+
+Go here for: DPS rate mechanics, Grail table availability, IAM and permission behaviour,
+what a product feature already does before you rebuild it in an app.
+
 ### Adjacent, and still in-bounds
 
-- **Dynatrace Docs** — `docs.dynatrace.com` for product/platform behaviour, DPS licensing, MCP server.
-- **Official AI skills** — `github.com/Dynatrace/dynatrace-for-ai` for DQL and Grail semantics.
+- **Official Dynatrace AI skills** — https://github.com/Dynatrace/dynatrace-for-ai for DQL
+  and Grail semantics. **Fetch on demand, never vendor a copy** —
+  → [dql-and-mcp.md](dql-and-mcp.md).
 - **The installed packages** — `node_modules/@dynatrace*/**/*.d.ts` is the API's ground truth.
+- **The house standard's reference implementation** —
+  https://github.com/adrianorafael/Command-Center-for-Dynatrace and its
+  [project page](https://adrianorafael.github.io/Command-Center-for-Dynatrace/) show the
+  README and page structure this pattern expects.
 
 ---
 

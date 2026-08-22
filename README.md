@@ -24,22 +24,26 @@ tenant before it ships, and sanitizes everything on its way to Git.
 
 ## Overview
 
-The skill is a `SKILL.md` plus ten reference documents, a set of copy-ready templates, and a
-secret scanner. It loads into any agent that supports the open
+The skill is a `SKILL.md` plus twelve reference documents, a set of copy-ready templates,
+and a secret scanner. It loads into any agent that supports the open
 [Agent Skills](https://agentskills.io) format — Claude Code, Cursor, GitHub Copilot,
 OpenCode, Gemini CLI and others — and takes effect the moment the agent starts working on a
 Dynatrace App.
 
-It encodes **eleven non-negotiable rules** and a **six-phase pipeline** with three hard
+It encodes **twelve non-negotiable rules** and a **six-phase pipeline** with three hard
 approval gates: no spec without research, no deploy without a named target, no push without
 a sanitize pass.
+
+It ships **no copy** of anyone else's documentation. The Dynatrace docs and Dynatrace's own
+agent skills are referenced by URL and fetched at the moment they are needed — a vendored
+copy goes stale between sessions while still looking authoritative.
 
 ## Table of Contents
 1. [Prerequisites](#prerequisites)
 2. [Installation](#installation)
 3. [Connecting to Dynatrace](#connecting-to-dynatrace)
 4. [How to Use It](#how-to-use-it)
-5. [The Eleven Rules](#the-eleven-rules)
+5. [The Twelve Rules](#the-twelve-rules)
 6. [The Pipeline](#the-pipeline)
 7. [What It Prevents](#what-it-prevents)
 8. [Important Behaviors](#important-behaviors)
@@ -57,8 +61,8 @@ a sanitize pass.
 - *Recommended:* the [Dynatrace MCP server](https://docs.dynatrace.com/docs/shortlink/dynatrace-mcp-server)
   or [dtctl](https://github.com/dynatrace-oss/dtctl), so DQL can be validated against a live
   tenant (rule R6)
-- *Recommended:* the official [Dynatrace skills](https://github.com/Dynatrace/dynatrace-for-ai),
-  which this skill routes to for DQL and Grail semantics
+- Network access to `developer.dynatrace.com`, `docs.dynatrace.com` and GitHub — the skill
+  reads them live rather than quoting a cached copy
 
 ## Installation
 
@@ -86,10 +90,22 @@ cp -r development-pattern-for-Dynatrace/skills/development-pattern-for-dynatrace
       .claude/skills/development-pattern-for-dynatrace
 ```
 
-### Alongside the official Dynatrace skills
+### The official Dynatrace skills — referenced, not bundled
 
-This skill covers *how to build and publish an app*. Dynatrace's own skills cover *what the
-data means*. Install both — this one routes to them:
+This skill covers *how to build and publish an app*. Dynatrace's own skills at
+[Dynatrace/dynatrace-for-ai](https://github.com/Dynatrace/dynatrace-for-ai) cover *what the
+data means* — DQL syntax, Grail semantics, entity models, platform costs.
+
+**This repository ships no copy of them, deliberately.** Dynatrace updates those files
+between your sessions; a vendored copy looks authoritative while being wrong. The skill's
+instruction is to fetch the specific file it needs, fresh, at the moment it needs it:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/Dynatrace/dynatrace-for-ai/main/skills/dt-dql-essentials/SKILL.md
+```
+
+If you prefer them installed in your own agent as well, that is your environment's business
+and works fine alongside this skill:
 
 ```bash
 npx skills add dynatrace/dynatrace-for-ai
@@ -153,7 +169,7 @@ The agent will then, in order:
 Add [`AGENTS.template.md`](skills/development-pattern-for-dynatrace/assets/templates/AGENTS.template.md)
 to your app repository as `AGENTS.md` so future sessions pick the pattern up automatically.
 
-## The Eleven Rules
+## The Twelve Rules
 
 | # | Rule |
 | --- | --- |
@@ -168,6 +184,7 @@ to your app repository as `AGENTS.md` so future sessions pick the pattern up aut
 | **R9** | **Review AI-written code like hostile code**, against a security and quality checklist. |
 | **R10** | **No AI co-authorship** in commits, PRs, README, page or comments — unless you ask for it. |
 | **R11** | **Naming convention `<App Name> for Dynatrace`** for repository, README, page and Hub listing. |
+| **R12** | **The version and the docs move with the app.** Every publication bumps `app.version` per SemVer; every push that changes behaviour, setup or cost updates the README **and** the page in the same commit. |
 
 ## The Pipeline
 
@@ -179,7 +196,8 @@ to your app repository as `AGENTS.md` so future sessions pick the pattern up aut
 4 VALIDATE    DQL on live tenant + data-shape assert     → real records shown to you
               + lint + security & quality review
 5 RUN/DEPLOY  dt-app dev → dt-app deploy                 → ⛔ USER APPROVAL GATE before deploy
-6 PUBLISH     sanitize → commit → push → README + page   → ⛔ USER APPROVAL GATE before push
+6 PUBLISH     bump version → CHANGELOG → README + page → ⛔ USER APPROVAL GATE before push
+              → sanitize → commit → push → tag
 ```
 
 ## What It Prevents
@@ -193,6 +211,9 @@ to your app repository as `AGENTS.md` so future sessions pick the pattern up aut
 | Query returns nothing in production | DQL never executed against a real tenant | R6 |
 | Five line charts on one page | Visualization chosen by habit | R8 |
 | "Co-Authored-By: Claude" in the history | Default commit trailer not stripped | R10 |
+| Three deploys all reporting `1.0.0` | Version not bumped per publication | R12 |
+| README describing the app as it was two features ago | Docs not updated in the same commit | R12 |
+| DQL syntax that was valid last month | A vendored copy of the Dynatrace skills went stale | Phase 0 |
 | Surprise DPS bill | Auto-refresh × tabs × wide timeframe, never measured | R6, README standard |
 
 ## Important Behaviors
@@ -218,10 +239,26 @@ Most training data and most older `AGENTS.md` files say charts and tables live i
 re-exports `@dynatrace/strato-components`. The skill corrects this explicitly, because it is
 the single most common source of outdated Dynatrace App code.
 
+### Nothing is vendored — the docs are read live
+The skill carries no copy of `developer.dynatrace.com`, `docs.dynatrace.com`, or
+Dynatrace's agent skills. It carries their **URLs**, and instructs the agent to open them
+during the session. That is why it works better in your VS Code than in a sandbox with no
+network: the references are live, not frozen. Every URL you were given for a Dynatrace App
+— design, components, data visualizations, icons, patterns, foundations, AppEngine, the
+develop guides, security and code optimization — is in
+[`documentation-research.md`](skills/development-pattern-for-dynatrace/references/documentation-research.md).
+
 ### The secret scanner is a net, not a guarantee
 `scan-secrets.sh` catches known patterns — Dynatrace tokens, tenant URLs and IDs, entity
 IDs, private keys, emails, hardcoded credentials. It cannot catch a secret that looks like
 ordinary text. A clean scan is necessary, not sufficient: read your own diff.
+
+### It treats the version and the docs as part of the change
+Not as follow-up work. A commit that changes behaviour without bumping `app.version` and
+updating the README and the page is, under this pattern, an incomplete commit. The bump
+level is decided by one question most people get wrong: **adding an OAuth scope is a MAJOR
+change**, because every existing user is pushed through a consent screen on next load —
+even when the code diff is three lines.
 
 ### It has opinions about your bill
 Cost is treated as a first-class design constraint, not an afterthought — the spec template
@@ -270,7 +307,7 @@ dollar amount depends entirely on your rate card.
 
 ```
 skills/development-pattern-for-dynatrace/
-├── SKILL.md                              # the eleven rules, the pipeline, routing
+├── SKILL.md                              # the twelve rules, the pipeline, routing
 ├── references/
 │   ├── security-and-secrets.md           # R1 — gitignore, placeholders, scanning, rotation
 │   ├── verification-protocol.md          # R2 — source hierarchy, commands, evidence log
@@ -282,12 +319,16 @@ skills/development-pattern-for-dynatrace/
 │   ├── app-lifecycle.md                  # dt-app commands, scopes, deploy, troubleshooting
 │   ├── code-review-checklist.md          # R9 — the pre-push review
 │   ├── git-and-publishing.md             # R1, R10, R11 — commit, push, publish
+│   ├── release-and-docs-sync.md          # R12 — SemVer, CHANGELOG, docs sync matrix
 │   └── readme-and-page.md                # the README + GitHub Pages standard
 ├── assets/
 │   ├── templates/                        # gitignore, eslint, app.config, spec, README, page, AGENTS, hook
 │   └── scripts/scan-secrets.sh           # the pre-commit scanner
-└── docs/index.html                       # this project's page
+docs/index.html                           # source for this project's page
+.github/workflows/pages.yml               # publishes docs/ to the generated gh-pages branch
 ```
+
+`gh-pages` is generated and force-pushed by CI — edit `docs/`, never that branch.
 
 ## Templates & Tools
 
@@ -297,7 +338,8 @@ skills/development-pattern-for-dynatrace/
 | [`eslint.config.mjs.template`](skills/development-pattern-for-dynatrace/assets/templates/eslint.config.mjs.template) | Security + SDL + no-secrets rules, and a hard block on non-Strato UI libraries |
 | [`app.config.json.template`](skills/development-pattern-for-dynatrace/assets/templates/app.config.json.template) | Placeholder-safe app config |
 | [`env.example.template`](skills/development-pattern-for-dynatrace/assets/templates/env.example.template) | The committed half of the `.env` pair |
-| [`spec.template.md`](skills/development-pattern-for-dynatrace/assets/templates/spec.template.md) | One-page spec with data contract, visualization rationale, cost and evidence log |
+| [`spec.template.md`](skills/development-pattern-for-dynatrace/assets/templates/spec.template.md) | One-page spec with data contract, visualization rationale, cost, docs impact and evidence log |
+| [`CHANGELOG.template.md`](skills/development-pattern-for-dynatrace/assets/templates/CHANGELOG.template.md) | Keep a Changelog format, with the scope/cost callouts this pattern requires |
 | [`README.template.md`](skills/development-pattern-for-dynatrace/assets/templates/README.template.md) | The app README standard, disclaimer and DPS section included |
 | [`page.template.html`](skills/development-pattern-for-dynatrace/assets/templates/page.template.html) | Self-contained GitHub Pages site — no build step, no CDN |
 | [`AGENTS.template.md`](skills/development-pattern-for-dynatrace/assets/templates/AGENTS.template.md) | Drop into an app repo so future sessions inherit the pattern |
@@ -320,6 +362,8 @@ keep the skill honest:
   `grep -oE "export \{[^}]*\}" node_modules/@dynatrace/strato-components/charts/index.d.ts`
 - **Record traps in your app's `AGENTS.md`** as you hit them, so the next session starts
   ahead instead of level.
+- **Nothing to sync from Dynatrace.** The docs and the official skills are referenced by
+  URL and fetched per session, so they cannot go stale here — that is the point.
 
 Corrections and additions are welcome — open an issue or a pull request.
 

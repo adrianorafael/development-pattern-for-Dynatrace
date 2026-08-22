@@ -149,14 +149,19 @@ Details and commands: [app-lifecycle.md](app-lifecycle.md).
 
 ## Phase 6 — Publish ⛔ GATE
 
-1. Sanitize sweep + secret scan (R1).
-2. Show the user the sanitize diff and the file list.
-3. Commit — no AI co-authorship (R10).
-4. Push to the repository agreed in Phase 0.
-5. Update README and the page if behaviour, cost or setup changed
-   ([readme-and-page.md](readme-and-page.md)).
+The version and the docs are **part of the change**, not follow-up work (R12):
 
-Details: [git-and-publishing.md](git-and-publishing.md).
+1. Bump `app.config.json` → `app.version` per SemVer, and justify the level.
+2. Add a dated `CHANGELOG.md` entry, written for the app's user.
+3. Update the README per the sync matrix — cost figures included if the query changed.
+4. Update `docs/index.html` to match. Same commit, no exceptions.
+5. Sanitize sweep + secret scan on the staged content (R1).
+6. Show the user the sanitize diff, the file list, and **the version**.
+7. Commit everything together — no AI co-authorship (R10).
+8. Push to the repository agreed in Phase 0, then tag `v<version>`.
+
+Details: [release-and-docs-sync.md](release-and-docs-sync.md) and
+[git-and-publishing.md](git-and-publishing.md).
 
 ---
 

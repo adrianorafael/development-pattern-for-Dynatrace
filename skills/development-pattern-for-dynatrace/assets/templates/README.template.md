@@ -39,6 +39,7 @@ to style it with Dynatrace's Design System.
 9. [Query Cost & Consumption (DPS)](#query-cost--consumption-dps)
 10. [Relevant File Structure](#relevant-file-structure)
 11. [Available Scripts](#available-scripts)
+12. [Versioning & Changelog](#versioning--changelog)
 
 ## Prerequisites
 
@@ -199,6 +200,23 @@ cost     ≈ GB/month × your DPS "Grail Query – data analyzed" rate
 | `npm run uninstall` | `dt-app uninstall` | Remove the app from the environment |
 | `npm run update` | `dt-app update` | Update `@dynatrace` packages and apply migrations |
 | `npm run lint` | `eslint .` | Lint, including security and secret rules |
+
+## Versioning & Changelog
+
+This app follows [Semantic Versioning](https://semver.org/), where "breaking" means
+breaking **for the person running the app**:
+
+| Bump | When |
+| --- | --- |
+| **MAJOR** | A scope changed (everyone must re-consent) · persisted state format changed without migration · a feature was removed · a default changed in a way that raises cost |
+| **MINOR** | New view, chart, filter or setting — nothing existing breaks |
+| **PATCH** | Bug fix, copy, styling, dependency bump, query optimized with identical results |
+
+- `app.config.json` → `app.version` is the single source of truth.
+- Every release is tagged `v<version>` and recorded in [CHANGELOG.md](CHANGELOG.md).
+- The same version is never published twice.
+
+**Current version:** see [`app.config.json`](app.config.json).
 
 To learn more about the Dynatrace Platform, see
 [Dynatrace Developer](https://developer.dynatrace.com/).

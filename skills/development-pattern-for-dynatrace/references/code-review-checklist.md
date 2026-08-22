@@ -126,6 +126,18 @@ deprecations before a major bump breaks the build.
 - [ ] No AI co-author trailer, no "Generated with", no session link.
 - [ ] Commit author is the user's identity.
 
+## 10. Version & docs (R12)
+
+- [ ] `app.config.json` → `app.version` bumped, at the right level.
+- [ ] A new scope was treated as **MAJOR** — it forces every user to re-consent.
+- [ ] `CHANGELOG.md` entry added, dated, naming any cost or scope change.
+- [ ] README updated per the sync matrix, cost figures re-measured if the query changed.
+- [ ] `docs/index.html` updated to match the README, in this same commit.
+- [ ] Version identical across `app.config.json`, CHANGELOG, README and page.
+- [ ] No vendored copy of the Dynatrace AI skills committed anywhere.
+
+→ [release-and-docs-sync.md](release-and-docs-sync.md)
+
 ---
 
 ## Reporting the review
