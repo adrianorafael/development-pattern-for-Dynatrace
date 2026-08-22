@@ -7,6 +7,10 @@
 # manual step, so that is what this does.
 #
 # docs/ stays the single source of truth; gh-pages is generated and force-pushed.
+#
+# Only the default branch publishes. Triggering on feature branches too made every
+# push run the job twice, each force-pushing gh-pages, so the first Pages build was
+# cancelled mid-flight by the second -- noisy, and briefly racy.
 
 name: Publish project page
 
@@ -14,7 +18,6 @@ on:
   push:
     branches:
       - main
-      - "claude/**"
     paths:
       - "docs/**"
       - ".github/workflows/pages.yml"
