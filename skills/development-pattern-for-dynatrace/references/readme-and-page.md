@@ -160,8 +160,49 @@ default it off, keep the timeframe narrow, project only needed fields with `| fi
 external JS. Template:
 [`../assets/templates/page.template.html`](../assets/templates/page.template.html).
 
-Setup (owner-only, one time): *Settings → Pages → Source: Deploy from a branch →
-`main` + `/docs` → Save.* Site lands at `https://<user>.github.io/<Repo-Name>/`.
+### Turning Pages on
+
+The simplest route, if the owner is at a keyboard: *Settings → Pages → Source: Deploy from
+a branch → `main` + `/docs` → Save.* Site lands at `https://<user>.github.io/<Repo-Name>/`.
+
+**An agent cannot do this.** Creating a Pages site through the REST API
+(`POST /repos/{owner}/{repo}/pages`) requires **admin** permission on the repository, which
+`GITHUB_TOKEN` never has. `actions/configure-pages` with `enablement: true` therefore fails
+with:
+
+```
+##[error]Create Pages site failed. Error: Resource not accessible by integration
+```
+
+Do not retry it, and do not tell the user it will work — it will not.
+
+**What does work without any manual step:** pushing a `gh-pages` branch. GitHub
+auto-enables Pages for a public repository the first time that branch appears, and serves
+it from the branch root. So publish `docs/` *to* `gh-pages` in CI and keep `docs/` as the
+single source of truth:
+
+```yaml
+permissions:
+  contents: write        # NOT pages: write — this pushes a branch, it does not call the Pages API
+# …
+- run: |
+    cp -r docs "$RUNNER_TEMP/site"
+    touch "$RUNNER_TEMP/site/.nojekyll"     # plain HTML, no Jekyll preprocessing
+    cd "$RUNNER_TEMP/site"
+    git init -q -b gh-pages
+    git config user.name  "github-actions[bot]"
+    git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+    git add -A && git commit -q -m "Publish project page from ${GITHUB_SHA:0:7}"
+    git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+```
+
+Never hand-edit `gh-pages` — it is generated and force-pushed. Two hand-maintained copies
+of the same page is the fastest way to ship a site that contradicts its own README.
+
+**One more owner-only trap:** pushing the first branch to an *empty* repository makes that
+branch the default. If the first push went to a feature branch, the repo's default branch
+is now that feature branch — only the owner can change it, under
+*Settings → General → Default branch*. Tell the user; do not leave it silently wrong.
 
 ### Section order
 

@@ -1,51 +1,58 @@
-# Publishes docs/ to GitHub Pages.
+# Publishes docs/ to the gh-pages branch, which GitHub Pages serves.
 #
-# actions/configure-pages with `enablement: true` turns GitHub Pages on for the
-# repository if it is not already enabled, so this workflow bootstraps the site
-# without anyone touching Settings -> Pages.
+# Why a branch and not actions/deploy-pages: creating a Pages site through the
+# REST API requires admin permission on the repository, which GITHUB_TOKEN never
+# has -- actions/configure-pages with `enablement: true` fails with "Resource not
+# accessible by integration". Pushing a gh-pages branch enables Pages without any
+# manual step, so that is what this does.
 #
-# It runs from whichever branch is the repository default, which is what the
-# github-pages environment's deployment branch policy allows.
+# docs/ stays the single source of truth; gh-pages is generated and force-pushed.
 
-name: Deploy GitHub Pages
+name: Publish project page
 
 on:
   push:
     branches:
       - main
       - "claude/**"
+    paths:
+      - "docs/**"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# Never cancel a deployment that is already in flight.
 concurrency:
-  group: pages
+  group: publish-page
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  publish:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure Pages (enables it if needed)
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
+      - name: Build the gh-pages tree from docs/
+        run: |
+          set -euo pipefail
+          rm -rf "$RUNNER_TEMP/site"
+          cp -r docs "$RUNNER_TEMP/site"
+          # Skip Jekyll: the page is plain HTML and needs no preprocessing.
+          touch "$RUNNER_TEMP/site/.nojekyll"
 
-      - name: Upload docs/ as the Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./docs
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Force-push it to gh-pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/site"
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Publish project page from ${GITHUB_SHA:0:7}"
+          git push -f \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            gh-pages
