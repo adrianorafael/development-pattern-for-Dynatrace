@@ -1,0 +1,14 @@
+{
+  "$schema": "./.dt-app/app.config.schema.json",
+  "environmentUrl": "https://YOUR-ENVIRONMENT.apps.dynatrace.com/",
+  "app": {
+    "name": "Your App",
+    "version": "0.1.0",
+    "description": "One line describing what the app does",
+    "id": "my.your.app",
+    "icon": "ui/assets/icons/app-icon.svg",
+    "scopes": [
+      { "name": "storage:events:read", "comment": "DQL access to dt.davis.problems" }
+    ]
+  }
+}

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Development Pattern for Dynatrace</title>
+  <meta name="description" content="An Agent Skill that keeps AI coding agents inside the Dynatrace world: Strato-only UI, no invented APIs, DQL validated against a live tenant, verified chart data shapes, and secret-safe publishing to GitHub." />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <style>
+    :root {
+      --bg: #0b0b16; --bg-elev: #12121f; --bg-card: #16162a; --border: #262640;
+      --text: #e7e7f0; --text-dim: #a0a0b8; --text-faint: #6b6b85;
+      --blue: #1496ff; --green: #b4dc00; --purple: #8a4fd0;
+      --critical: #ff6b6b; --warning: #ffc043;
+      --radius: 14px; --maxw: 1080px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace; font-size: 0.88em;
+      background: #1d1d33; padding: 2px 6px; border-radius: 6px; color: #c9d7ff; }
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+    nav { position: sticky; top: 0; z-index: 50; background: rgba(11,11,22,0.85);
+      backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+    nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 62px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05rem; }
+    .brand img { width: 30px; height: 30px; display: block; }
+    .nav-links { display: flex; gap: 20px; align-items: center; }
+    .nav-links a { color: var(--text-dim); font-size: 0.88rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+    .nav-gh { border: 1px solid var(--border); padding: 7px 14px; border-radius: 8px;
+      color: var(--text) !important; background: var(--bg-card); }
+    .nav-gh:hover { border-color: var(--blue); text-decoration: none !important; }
+    @media (max-width: 980px) { .nav-links a:not(.nav-gh) { display: none; } }
+
+    header.hero { padding: 84px 0 56px; position: relative; overflow: hidden; }
+    header.hero::before { content: ""; position: absolute; top: -160px; left: 50%;
+      transform: translateX(-50%); width: 900px; height: 500px; pointer-events: none;
+      background: radial-gradient(circle, rgba(20,150,255,0.16), transparent 62%); }
+    .hero-inner { position: relative; text-align: center; }
+    .eyebrow { display: inline-block; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--green); border: 1px solid var(--border); background: var(--bg-card);
+      padding: 5px 12px; border-radius: 999px; margin-bottom: 22px; font-weight: 600; }
+    h1 { font-size: clamp(2.1rem, 6vw, 3.4rem); line-height: 1.1; font-weight: 800;
+      letter-spacing: -0.02em; margin-bottom: 18px; }
+    h1 .grad { background: linear-gradient(120deg, var(--blue), var(--green) 55%, var(--purple));
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .subtitle { font-size: clamp(1rem, 2.4vw, 1.22rem); color: var(--text-dim);
+      max-width: 700px; margin: 0 auto 30px; }
+    .cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 46px; }
+    .btn { padding: 12px 22px; border-radius: 10px; font-weight: 600; font-size: 0.95rem;
+      border: 1px solid var(--border); transition: transform .12s, border-color .12s; }
+    .btn:hover { transform: translateY(-2px); text-decoration: none; }
+    .btn-primary { background: linear-gradient(120deg, var(--blue), #0f6fd0); color: #fff !important; border-color: transparent; }
+    .btn-ghost { background: var(--bg-card); color: var(--text) !important; }
+    .btn-ghost:hover { border-color: var(--blue); }
+
+    .stats { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px 26px; min-width: 150px; }
+    .stat .num { font-size: 1.6rem; font-weight: 800;
+      background: linear-gradient(120deg, var(--blue), var(--green));
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat .lbl { font-size: 0.82rem; color: var(--text-dim); margin-top: 2px; }
+
+    .disclaimer { max-width: var(--maxw); margin: 12px auto 0; padding: 16px 20px;
+      background: rgba(255,192,67,0.07); border: 1px solid rgba(255,192,67,0.32);
+      border-radius: var(--radius); color: var(--text-dim); font-size: 0.9rem; }
+    .disclaimer strong { color: var(--warning); }
+
+    section { padding: 64px 0; border-top: 1px solid var(--border); }
+    .sec-head { text-align: center; margin-bottom: 42px; }
+    .sec-head h2 { font-size: clamp(1.6rem, 4vw, 2.1rem); font-weight: 800; letter-spacing: -0.02em; }
+    .sec-head p { color: var(--text-dim); margin-top: 10px; max-width: 660px; margin-left: auto; margin-right: auto; }
+    .kicker { color: var(--green); font-weight: 700; font-size: 0.8rem; letter-spacing: 0.08em;
+      text-transform: uppercase; display: block; margin-bottom: 8px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 24px; transition: transform .14s, border-color .14s; }
+    .card:hover { transform: translateY(-3px); border-color: #34345a; }
+    .card .ico { font-size: 1.5rem; margin-bottom: 12px; display: block; }
+    .card h3 { font-size: 1.06rem; margin-bottom: 8px; font-weight: 700; }
+    .card p { color: var(--text-dim); font-size: 0.92rem; }
+    .card .meta { margin-top: 12px; font-size: 0.78rem; color: var(--text-faint);
+      border-top: 1px solid var(--border); padding-top: 10px; }
+    .card .meta code { font-size: 0.85em; }
+
+    .behaviors { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+    .beh { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--blue);
+      border-radius: var(--radius); padding: 20px 22px; }
+    .beh h3 { font-size: 1rem; margin-bottom: 8px; }
+    .beh p { color: var(--text-dim); font-size: 0.9rem; }
+    .beh.b-green { border-left-color: var(--green); }
+    .beh.b-purple { border-left-color: var(--purple); }
+    .beh.b-warn { border-left-color: var(--warning); }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 13px 18px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { background: var(--bg-elev); font-weight: 600; font-size: 0.82rem;
+      text-transform: uppercase; letter-spacing: 0.04em; }
+    tr:last-child td { border-bottom: none; }
+    td code { white-space: nowrap; }
+    .rule-id { font-weight: 800; color: var(--green); white-space: nowrap; }
+    .tag { display: inline-block; font-size: 0.72rem; padding: 2px 9px; border-radius: 999px;
+      font-weight: 600; white-space: nowrap; }
+    .tag.red { background: rgba(255,107,107,0.15); color: var(--critical); }
+    .tag.green { background: rgba(180,220,0,0.14); color: var(--green); }
+    .tag.dim { background: #22223a; color: var(--text-dim); }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .chip { background: var(--bg-card); border: 1px solid var(--border); border-radius: 999px;
+      padding: 8px 16px; font-size: 0.88rem; color: var(--text-dim); font-weight: 500; }
+    .chip b { color: var(--text); font-weight: 600; }
+
+    pre { background: #0d0d18; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; overflow-x: auto; font-size: 0.86rem; line-height: 1.7;
+      font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace; color: #c9d7ff; }
+    pre .c { color: var(--text-faint); }
+    pre .k { color: var(--green); }
+    pre .r { color: var(--critical); }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 820px) { .two-col { grid-template-columns: 1fr; } }
+    .note { color: var(--text-dim); font-size: 0.9rem; margin-top: 18px; }
+    .callout { background: rgba(20,150,255,0.06); border: 1px solid rgba(20,150,255,0.3);
+      border-radius: var(--radius); padding: 14px 18px; font-size: 0.88rem; color: var(--text-dim); margin-top: 18px; }
+    ul.tick { list-style: none; margin-top: 10px; }
+    ul.tick li { padding-left: 26px; position: relative; margin-bottom: 8px; color: var(--text-dim); font-size: 0.92rem; }
+    ul.tick li::before { content: "→"; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+
+    footer { border-top: 1px solid var(--border); padding: 40px 0; text-align: center;
+      color: var(--text-faint); font-size: 0.88rem; }
+    footer a { color: var(--text-dim); }
+    footer .fnote { margin-top: 10px; font-size: 0.8rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand"><img src="icon.svg" alt="" /> Development Pattern</div>
+    <div class="nav-links">
+      <a href="#rules">Rules</a>
+      <a href="#pipeline">Pipeline</a>
+      <a href="#prevents">What it prevents</a>
+      <a href="#install">Install</a>
+      <a href="#cost">Cost</a>
+      <a href="#structure">Structure</a>
+      <a href="#faq">FAQ</a>
+      <a class="nav-gh" href="https://github.com/adrianorafael/development-pattern-for-Dynatrace">GitHub ↗</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <span class="eyebrow">Agent Skill · Guardrails for vibecoding</span>
+    <h1>Development Pattern <span class="grad">for Dynatrace</span></h1>
+    <p class="subtitle">
+      Keeps an AI coding agent inside the Dynatrace world: Strato-only UI, no invented APIs,
+      DQL executed against a real tenant before it ships, verified chart data shapes,
+      and nothing sensitive reaching your repository.
+    </p>
+    <div class="cta">
+      <a class="btn btn-primary" href="#install">Install it</a>
+      <a class="btn btn-ghost" href="https://github.com/adrianorafael/development-pattern-for-Dynatrace">View on GitHub</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">11 rules</div><div class="lbl">non-negotiable</div></div>
+      <div class="stat"><div class="num">6 phases</div><div class="lbl">3 approval gates</div></div>
+      <div class="stat"><div class="num">10 references</div><div class="lbl">loaded on demand</div></div>
+      <div class="stat"><div class="num">9 templates</div><div class="lbl">+ a secret scanner</div></div>
+    </div>
+  </div>
+  <div class="wrap">
+    <p class="disclaimer">
+      ⚠️ <strong>Disclaimer:</strong> Created and maintained by
+      <a href="https://github.com/adrianorafael">@adrianorafael</a>
+      with <strong>no affiliation with Dynatrace</strong> and no responsibility for any failures,
+      issues, or consumption of resources and licenses. It is a <strong>study version with no
+      official support</strong>. Using it — and running, deploying or publishing the apps it helps
+      you build — is at your own risk.
+    </p>
+  </div>
+</header>
+
+<section id="why">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">The problem</span>
+      <h2>Vibecoding a Dynatrace App works — until it doesn't</h2>
+      <p>Four failures show up in almost every AI-built Dynatrace App. None of them announce
+         themselves; all of them cost hours.</p>
+    </div>
+    <div class="grid">
+      <div class="card"><span class="ico">🧪</span><h3>Invented APIs</h3>
+        <p>A component prop recalled from training data rather than read from the package.
+           It compiles, renders nothing, warns about nothing.</p>
+        <div class="meta">Fixed by <b>R2</b> — verify against <code>.d.ts</code>, every time</div></div>
+      <div class="card"><span class="ico">🎨</span><h3>Foreign design</h3>
+        <p>Tailwind classes, a Recharts line chart, a hardcoded <code>#1496ff</code>. The app
+           stops looking native and breaks in dark mode.</p>
+        <div class="meta">Fixed by <b>R3</b> — Strato only, tokens only</div></div>
+      <div class="card"><span class="ico">📉</span><h3>Silent empty charts</h3>
+        <p>Grail records handed straight to a chart that wanted a different shape.
+           No error, no data, no clue.</p>
+        <div class="meta">Fixed by <b>R7</b> — convert, assert, then render</div></div>
+      <div class="card"><span class="ico">🔓</span><h3>Leaked tenant data</h3>
+        <p>A tenant URL in <code>app.config.json</code>, a token in <code>.mcp.json</code>,
+           <code>.dt-app/</code> committed with cached OAuth tokens.</p>
+        <div class="meta">Fixed by <b>R1</b> — placeholders, gitignore, scanner</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="rules">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">The contract</span>
+      <h2>Eleven non-negotiable rules</h2>
+      <p>Stated as absolutes on purpose. "Prefer Strato where reasonable" becomes, in practice,
+         "use Strato until something is mildly inconvenient".</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Rule</th><th>What it stops</th></tr></thead>
+        <tbody>
+          <tr><td class="rule-id">R1</td><td><b>Never publish a secret.</b> No tokens, <code>.env</code>, tenant IDs or URLs, emails, customer names. Placeholders instead.</td><td>A leaked credential you must rotate</td></tr>
+          <tr><td class="rule-id">R2</td><td><b>Never invent an API.</b> Every component, prop, icon, hook, DQL function and CLI flag verified against <code>node_modules/**/*.d.ts</code> or the docs, in-session.</td><td>Props that silently do nothing</td></tr>
+          <tr><td class="rule-id">R3</td><td><b>Strato only.</b> No MUI, Ant, Chakra, Tailwind, Recharts, Chart.js, ECharts or raw D3.</td><td>An app that doesn't look native</td></tr>
+          <tr><td class="rule-id">R4</td><td><b>Research before spec.</b> Read the section <i>and follow its links</i>. Never answer from memory alone.</td><td>Designs built on an overview's depth</td></tr>
+          <tr><td class="rule-id">R5</td><td><b>Spec before code</b>, with an explicit approval gate.</td><td>Six rounds of correcting symptoms</td></tr>
+          <tr><td class="rule-id">R6</td><td><b>Every DQL is executed</b> against a live tenant before it ships.</td><td>Queries that return nothing in prod</td></tr>
+          <tr><td class="rule-id">R7</td><td><b>Every visualization is fed a verified data shape</b> — converted, asserted, then rendered.</td><td>Blank charts with no error</td></tr>
+          <tr><td class="rule-id">R8</td><td><b>No monotonous screens.</b> Chart type follows the data's shape and the question, not habit.</td><td>Five line charts answering nothing</td></tr>
+          <tr><td class="rule-id">R9</td><td><b>Review AI-written code like hostile code</b>, against a security and quality checklist.</td><td>Fluent code that is quietly wrong</td></tr>
+          <tr><td class="rule-id">R10</td><td><b>No AI co-authorship</b> in commits, PRs, README, page or comments — unless you ask for it.</td><td>Attribution you didn't want</td></tr>
+          <tr><td class="rule-id">R11</td><td><b>Naming convention <code>&lt;App Name&gt; for Dynatrace</code></b> for repository, README, page and Hub listing.</td><td>Inconsistent public identity</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="pipeline">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">The workflow</span>
+      <h2>Six phases, three hard gates</h2>
+      <p>No spec without research. No deploy without a named target. No push without a sanitize pass.</p>
+    </div>
+<pre>0 <span class="k">BOOTSTRAP</span>   repo? tenant? MCP? identity? publication?  <span class="c">→ official skills installed, .gitignore armed</span>
+1 <span class="k">RESEARCH</span>    developer.dynatrace.com, depth-first       <span class="c">→ evidence log with URLs actually read</span>
+2 <span class="k">SPEC</span>        specs/&lt;slug&gt;.md                            <span class="r">→ ⛔ USER APPROVAL GATE</span>
+3 <span class="k">BUILD</span>       Strato-only, verified APIs                 <span class="c">→ every symbol traced to a .d.ts or a doc page</span>
+4 <span class="k">VALIDATE</span>    DQL on live tenant + data-shape assert     <span class="c">→ real records shown to you</span>
+              + lint + security &amp; quality review
+5 <span class="k">RUN/DEPLOY</span>  dt-app dev → dt-app deploy                 <span class="r">→ ⛔ USER APPROVAL GATE before deploy</span>
+6 <span class="k">PUBLISH</span>     sanitize → commit → push → README + page    <span class="r">→ ⛔ USER APPROVAL GATE before push</span></pre>
+    <div class="callout">Phase 0 asks five questions in one batch — repository, target tenant,
+      MCP availability, app identity, publication intent — and every later decision refers back
+      to those answers instead of re-asking.</div>
+  </div>
+</section>
+
+<section id="prevents">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Under the hood</span>
+      <h2>How each rule is actually enforced</h2>
+      <p>The reference documents load on demand, before the work — not after it fails.</p>
+    </div>
+    <div class="behaviors">
+      <div class="beh"><h3>🔵 Verification beats recall</h3>
+        <p>Before writing <code>&lt;HoneycombChart&gt;</code>, the agent greps
+          <code>charts/index.d.ts</code>. Before writing a prop, it reads the component's own
+          <code>.d.ts</code>. Every claim lands in an evidence log with its source.</p></div>
+      <div class="beh b-green"><h3>🟢 Depth-first documentation</h3>
+        <p>One page is a table of contents, not an understanding. The protocol requires following
+          in-page links into foundations, patterns and guides, then cross-checking the API against
+          the installed package.</p></div>
+      <div class="beh b-purple"><h3>🟣 DQL is executed, not reasoned about</h3>
+        <p>Built in layers — <code>fieldsSummary</code> to discover real fields, filter, shape,
+          confirm with you, record the scanned bytes. Without MCP, queries are labelled
+          <b>⚠️ Unvalidated</b> rather than quietly trusted.</p></div>
+      <div class="beh b-warn"><h3>🟡 Data contracts, then rendering</h3>
+        <p>Charts take a unified <code>ChartData</code> flat array with accessor strings;
+          <code>TimeseriesChart</code> wants <code>datapoints[].start</code> as a real
+          <code>Date</code>. The agent prints the actual data, asserts the contract, then looks
+          at the rendered screen.</p></div>
+      <div class="beh"><h3>🔵 Anti-monotony test</h3>
+        <p>A screen is checked for a headline layer, bars for categories, rankings as a
+          <code>TopList</code>, at most one pie. But variety is never the goal — fit is: three
+          genuinely different time series stay three line charts.</p></div>
+      <div class="beh b-green"><h3>🟢 Sanitize, then commit</h3>
+        <p><code>scan-secrets.sh</code> runs over the working tree <i>and</i> the staged diff,
+          catching Dynatrace tokens, tenant URLs and IDs, entity IDs, private keys and hardcoded
+          credentials — plus structural checks for tracked <code>.env</code> and
+          <code>.dt-app/</code>.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="stack">
+  <div class="wrap">
+    <div class="sec-head"><span class="kicker">Built for</span><h2>The stack it defends</h2>
+      <p>Everything it enforces maps to a real part of the Dynatrace App platform.</p></div>
+    <div class="chips">
+      <span class="chip"><b>Strato</b> Design System 3.x</span>
+      <span class="chip"><b>dt-app</b> App Toolkit</span>
+      <span class="chip"><b>AppEngine</b> + app functions</span>
+      <span class="chip"><b>DQL</b> / Grail</span>
+      <span class="chip"><b>@dynatrace-sdk</b> react-hooks</span>
+      <span class="chip"><b>App State</b> &amp; Document services</span>
+      <span class="chip"><b>Dynatrace MCP</b> server</span>
+      <span class="chip"><b>Agent Skills</b> open format</span>
+    </div>
+    <div class="callout" style="margin-top:26px">
+      <b>Version reality check.</b> As of Strato 3.x,
+      <code>@dynatrace/strato-components-preview</code> is <b>deprecated</b> and simply re-exports
+      <code>@dynatrace/strato-components</code> — charts, tables, filters and forms all live in the
+      main package now. Most training data and most older <code>AGENTS.md</code> files still say
+      otherwise, which makes it the single most common source of outdated Dynatrace App code.
+      The skill corrects it explicitly.
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <div class="sec-head"><span class="kicker">Get running</span><h2>Install &amp; use</h2>
+      <p>Works with any agent that supports the open Agent Skills format.</p></div>
+    <div class="two-col">
+      <div class="card"><h3>Prerequisites</h3>
+        <ul class="tick">
+          <li>An agent supporting <a href="https://agentskills.io">Agent Skills</a> — Claude Code,
+              Cursor, Copilot, OpenCode, Gemini CLI</li>
+          <li>Node.js ≥ 18 and npm ≥ 9 for <code>dt-app</code></li>
+          <li>A Dynatrace environment with <b>Grail</b></li>
+          <li><i>Recommended:</i> the Dynatrace MCP server or dtctl, so DQL can be validated</li>
+        </ul></div>
+      <div class="card"><h3>Pair it with the official skills</h3>
+        <p>This skill covers <i>how to build and publish an app</i>. Dynatrace's own skills cover
+          <i>what the data means</i> — DQL semantics, Grail entities, problems, logs, costs.
+          Install both; this one routes to them.</p>
+        <div class="meta"><code>npx skills add dynatrace/dynatrace-for-ai</code></div></div>
+    </div>
+<pre style="margin-top:20px"><span class="c"># Skills package (recommended)</span>
+npx skills add adrianorafael/development-pattern-for-Dynatrace
+
+<span class="c"># Claude Code plugin</span>
+claude plugin marketplace add adrianorafael/development-pattern-for-Dynatrace
+claude plugin install development-pattern-for-dynatrace@development-pattern-for-dynatrace
+
+<span class="c"># Manual — copy into your agent's skills path</span>
+git clone https://github.com/adrianorafael/development-pattern-for-Dynatrace.git
+cp -r development-pattern-for-Dynatrace/skills/development-pattern-for-dynatrace \
+      .claude/skills/development-pattern-for-dynatrace</pre>
+
+    <p class="note" style="margin-top:28px"><b>Connect it to a tenant</b> so DQL can be validated (R6):</p>
+<pre><span class="c"># .env — gitignored. Real values live ONLY here.</span>
+DT_ENVIRONMENT=https://YOUR-ENVIRONMENT.apps.dynatrace.com
+DT_PLATFORM_TOKEN=dt0s16.YOUR-PLATFORM-TOKEN</pre>
+<pre><span class="c">// .mcp.json — committed, with ${ENV} references, never literal values</span>
+{
+  "mcpServers": {
+    "dynatrace": {
+      "type": "http",
+      "url": "${DT_ENVIRONMENT}/platform-reserved/mcp-gateway/v0.1/servers/dynatrace-mcp/mcp",
+      "headers": { "Authorization": "Bearer ${DT_PLATFORM_TOKEN}" }
+    }
+  }
+}</pre>
+    <div class="callout">Replace <code>YOUR-ENVIRONMENT</code> with your own tenant ID — the URL has
+      the form <code>https://&lt;tenant-id&gt;.apps.dynatrace.com</code>, copied from your Dynatrace
+      address bar. Grant the platform token the <b>minimum</b> scopes for the queries your app runs.
+      Without MCP the skill still works; it just labels unvalidated queries as such.</div>
+
+    <p class="note" style="margin-top:28px"><b>Then simply ask for an app.</b> The skill triggers on
+      its own when you mention a Dynatrace App, <code>dt-app</code>, Strato, AppEngine, DQL or Grail.</p>
+<pre>"Build me a Dynatrace app that shows Kubernetes workload health by namespace."</pre>
+  </div>
+</section>
+
+<section id="cost">
+  <div class="wrap">
+    <div class="sec-head"><span class="kicker">Cost awareness</span><h2>Cost &amp; consumption (DPS)</h2>
+      <p>The skill itself costs nothing. The apps it helps you build do — and the pattern treats
+         that as a design constraint, not an afterthought.</p></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Cost driver</th><th>Impact</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><b>Auto-refresh</b></td><td><span class="tag red">Dominant</span></td>
+              <td>One Grail query per interval, <b>per open tab</b>. The single biggest lever.</td></tr>
+          <tr><td>Timeframe width</td><td><span class="tag dim">Medium</span></td>
+              <td>Wider window = more data scanned per run.</td></tr>
+          <tr><td>Concurrent users / tabs</td><td><span class="tag dim">Linear</span></td>
+              <td>Each open instance runs its own refresh loop.</td></tr>
+          <tr><td>Projected fields</td><td><span class="tag green">Reducible</span></td>
+              <td>Grail is columnar — <code>| fields …</code> scans fewer bytes.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note"><b>Illustrative monthly scenarios</b> for a typical app built under this pattern</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Scenario</th><th>Queries / month</th><th>GB scanned*</th><th>Est. cost**</th></tr></thead>
+        <tbody>
+          <tr><td>Auto-refresh <b>OFF</b>, 5 users, manual use</td><td>~2,000</td><td>~2 GB</td>
+              <td><span class="tag green">Negligible</span></td></tr>
+          <tr><td>Auto-refresh <b>ON</b> (1 min), 5 users, 8h/day</td><td>~53,000</td><td>~260 GB</td>
+              <td>Low–moderate</td></tr>
+          <tr><td>Auto-refresh <b>ON</b> (1 min), 20 users, 8h/day</td><td>~211,000</td><td>~1 TB</td>
+              <td><span class="tag red">Watch this</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">* Assuming ~5&nbsp;MB scanned per query in a busy environment; small environments
+      scan well under 1&nbsp;MB. ** Multiply GB scanned by your contract's
+      <b>"Grail Query – data analyzed"</b> rate — the dollar amount depends entirely on your rate
+      card, so <b>measure before relying on estimates</b>.</p>
+    <div class="two-col" style="margin-top:22px">
+      <div class="card"><h3>What the pattern requires</h3>
+        <ul class="tick">
+          <li>A cost section in the spec, before the code exists</li>
+          <li>Filter-early, project-only-needed-fields queries</li>
+          <li>Auto-refresh off by default, or a defensibly slow interval</li>
+          <li>A <b>Query Cost &amp; Consumption (DPS)</b> section in every app's README and page</li>
+        </ul></div>
+      <div class="card"><h3>Measure it precisely</h3>
+        <ul class="tick">
+          <li>Run the query in a <b>Notebook</b> and read
+              <code>metadata.grail.scannedBytes</code> from <code>queryExecute</code></li>
+          <li>Confirm aggregates in <b>Account Management → Cost &amp; usage → Grail Query</b></li>
+        </ul>
+        <div class="meta">The estimate is a starting point. Your rate card is the answer.</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="structure">
+  <div class="wrap">
+    <div class="sec-head"><span class="kicker">Codebase</span><h2>What's in the box</h2>
+      <p>A <code>SKILL.md</code>, ten references loaded on demand, nine templates and a scanner.</p></div>
+<pre>skills/development-pattern-for-dynatrace/
+├── <span class="k">SKILL.md</span>                              <span class="c"># the eleven rules, the pipeline, routing</span>
+├── references/
+│   ├── security-and-secrets.md           <span class="c"># R1 — gitignore, placeholders, scanning, rotation</span>
+│   ├── verification-protocol.md          <span class="c"># R2 — source hierarchy, commands, evidence log</span>
+│   ├── documentation-research.md         <span class="c"># R4 — the doc map and the depth protocol</span>
+│   ├── strato-components.md              <span class="c"># R3 — package map, imports, component inventory</span>
+│   ├── strato-dataviz.md                 <span class="c"># R7, R8 — chart choice, data contracts, shape checks</span>
+│   ├── dql-and-mcp.md                    <span class="c"># R6 — MCP setup, validation loop, DQL traps, cost</span>
+│   ├── spec-driven-workflow.md           <span class="c"># R5 — phases, gates, spec anatomy</span>
+│   ├── app-lifecycle.md                  <span class="c"># dt-app commands, scopes, deploy, troubleshooting</span>
+│   ├── code-review-checklist.md          <span class="c"># R9 — the pre-push review</span>
+│   ├── git-and-publishing.md             <span class="c"># R1, R10, R11 — commit, push, publish</span>
+│   └── readme-and-page.md                <span class="c"># the README + GitHub Pages standard</span>
+└── assets/
+    ├── templates/                        <span class="c"># gitignore, eslint, app.config, spec, README, page, AGENTS, hook</span>
+    └── scripts/scan-secrets.sh           <span class="c"># the pre-commit scanner</span></pre>
+    <p class="note">Run the scanner directly, any time:</p>
+<pre>bash skills/development-pattern-for-dynatrace/assets/scripts/scan-secrets.sh
+git diff --cached | bash skills/development-pattern-for-dynatrace/assets/scripts/scan-secrets.sh --stdin</pre>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head"><span class="kicker">Help</span><h2>Honest answers</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+        <tbody>
+          <tr><td>Does it work without the MCP server?</td>
+              <td>Yes — but it cannot satisfy R6, so every query it writes is labelled
+                  <b>⚠️ Unvalidated</b> and you are told to verify it in a Notebook.</td></tr>
+          <tr><td>Is the Strato component inventory guaranteed accurate?</td>
+              <td>No. It is a snapshot of <code>@dynatrace/strato-components@3.11.3</code> from
+                  August 2026, included to speed up lookups. The skill's own instruction is to
+                  re-verify in your project's <code>node_modules</code>.</td></tr>
+          <tr><td>Will the scanner catch every secret?</td>
+              <td>No. It catches known patterns. A secret that looks like ordinary text will pass.
+                  A clean scan is necessary, not sufficient — read your own diff.</td></tr>
+          <tr><td>Can I disagree with a rule?</td>
+              <td>Yes. It is Markdown, and it is yours — edit <code>SKILL.md</code>. The rules are
+                  absolutes because soft preferences erode under deadline pressure, not because
+                  they are sacred.</td></tr>
+          <tr><td>Why does the agent ask more questions than before?</td>
+              <td>Because R2 forbids guessing. When a package isn't installed and the docs are
+                  unreachable, the skill's instruction is to say so and offer two unblocks rather
+                  than emit a plausible-looking prop.</td></tr>
+          <tr><td>Is this official Dynatrace tooling?</td>
+              <td>No. It is an independent, unaffiliated project. Dynatrace's own agent skills
+                  live at <a href="https://github.com/Dynatrace/dynatrace-for-ai">Dynatrace/dynatrace-for-ai</a>,
+                  and this skill routes to them.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Built by <a href="https://github.com/adrianorafael">@adrianorafael</a> ·
+    <a href="https://github.com/adrianorafael/development-pattern-for-Dynatrace">Source on GitHub</a> ·
+    <a href="https://github.com/adrianorafael/Command-Center-for-Dynatrace">Command Center for Dynatrace</a> ·
+    <a href="https://developer.dynatrace.com/">Dynatrace Developer</a>
+    <p class="fnote">Not affiliated with, endorsed by, or supported by Dynatrace. Provided "as is"
+      for study and demonstration purposes. Dynatrace and the Dynatrace logo are trademarks of
+      Dynatrace LLC.</p>
+  </div>
+</footer>
+
+</body>
+</html>

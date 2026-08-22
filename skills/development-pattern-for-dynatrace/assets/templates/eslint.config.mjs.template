@@ -1,0 +1,151 @@
+// ESLint flat config for a Dynatrace App.
+// Part of "Development Pattern for Dynatrace" — rules R3 (Strato only) and R9 (review).
+//
+// Install the plugins:
+//   npm i -D eslint @eslint/js typescript-eslint eslint-plugin-react eslint-plugin-react-hooks \
+//            eslint-plugin-security eslint-plugin-no-secrets eslint-plugin-no-unsanitized \
+//            eslint-plugin-n @microsoft/eslint-plugin-sdl
+//
+// Requires a tsconfig.eslint.json covering every file you lint.
+
+import eslint from "@eslint/js";
+import { defineConfig, globalIgnores } from "eslint/config";
+import tseslint from "typescript-eslint";
+import react from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
+import security from "eslint-plugin-security";
+import noSecrets from "eslint-plugin-no-secrets";
+import nounsanitized from "eslint-plugin-no-unsanitized";
+import n from "eslint-plugin-n";
+import pluginMicrosoftSdl from "@microsoft/eslint-plugin-sdl";
+
+// R3 — Strato components must be imported from their subpaths, never the package root.
+// Root imports break tree-shaking and bloat the AppEngine bundle.
+const stratoImportRule = [
+  "error",
+  {
+    paths: [
+      {
+        name: "@dynatrace/strato-components",
+        message:
+          "Import from a subpath instead, e.g. '@dynatrace/strato-components/layouts'.",
+      },
+      {
+        name: "@dynatrace/strato-components-preview",
+        message:
+          "strato-components-preview is deprecated. Import from '@dynatrace/strato-components/<subpath>'.",
+      },
+      {
+        name: "@dynatrace/strato-design-tokens",
+        message:
+          "Import from a subpath instead, e.g. '@dynatrace/strato-design-tokens/colors'.",
+      },
+    ],
+    patterns: [
+      {
+        // R3 — no third-party UI or chart libraries in a Dynatrace App.
+        group: [
+          "@mui/*", "antd", "antd/*", "@chakra-ui/*", "react-bootstrap",
+          "recharts", "chart.js", "react-chartjs-2", "echarts", "echarts-for-react",
+          "victory", "@nivo/*", "d3", "d3-*",
+        ],
+        message:
+          "Third-party UI/chart libraries are not allowed. Use @dynatrace/strato-components.",
+      },
+    ],
+  },
+];
+
+const sharedRules = {
+  // Security
+  "no-eval": "error",
+  "react/no-danger": "error",
+  "react/jsx-no-script-url": "error",
+  "nounsanitized/method": "error",
+  "nounsanitized/property": "error",
+  "@microsoft/sdl/no-inner-html": "error",
+  "@microsoft/sdl/no-document-write": "error",
+
+  // R1 — secrets never reach the repository
+  "noSecrets/no-secrets": [
+    "error",
+    {
+      additionalRegexes: {
+        "Dynatrace Token":
+          "dt0[a-zA-Z]{1}[0-9]{2}\\.[A-Z0-9]{8,24}\\.[A-Z0-9]{64}",
+        "Dynatrace Tenant URL":
+          "https://[a-z]{3}[0-9]{5}\\.(apps|live|sprint)\\.dynatrace\\.com",
+      },
+    },
+  ],
+
+  // Correctness
+  "@typescript-eslint/no-floating-promises": "error",
+  "@typescript-eslint/no-deprecated": "error", // surfaces Strato deprecations early
+  "react-hooks/rules-of-hooks": "error",
+  "react-hooks/exhaustive-deps": "warn",
+
+  // R3
+  "no-restricted-imports": stratoImportRule,
+
+  // Noise reduction — Strato components carry their own types
+  "react/prop-types": "off",
+  "react/no-unescaped-entities": "off",
+};
+
+const languageOptions = {
+  parser: tseslint.parser,
+  parserOptions: { project: "./tsconfig.eslint.json" },
+};
+
+const plugins = {
+  eslint,
+  "@typescript-eslint": tseslint.plugin,
+  react,
+  "react-hooks": reactHooks,
+  noSecrets,
+  security,
+  n,
+  nounsanitized,
+  "@microsoft/sdl": pluginMicrosoftSdl,
+};
+
+const extendsList = [
+  eslint.configs.recommended,
+  tseslint.configs.recommended,
+  tseslint.configs.recommendedTypeChecked,
+  react.configs.flat.recommended,
+  nounsanitized.configs.recommended,
+];
+
+export default defineConfig([
+  globalIgnores([
+    "**/node_modules",
+    "**/dist",
+    "**/.dt-app",
+    "**/app.config.*",
+    "**/eslint.config.mjs",
+  ]),
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    ignores: ["**/*.action.*", "**/*.widget.*", "**/*.test.ts", "**/test-utils.ts"],
+    languageOptions,
+    plugins,
+    extends: extendsList,
+    rules: sharedRules,
+  },
+  {
+    // App functions, actions and widgets run in the Dynatrace JS runtime, not the browser.
+    files: ["**/*.action.ts", "**/*.widget.tsx", "api/**/*.ts"],
+    ignores: ["**/*.test.ts", "**/test-utils.ts"],
+    languageOptions,
+    plugins,
+    extends: extendsList,
+    rules: {
+      ...sharedRules,
+      "@typescript-eslint/no-unsafe-member-access": "warn",
+      "@typescript-eslint/no-unsafe-assignment": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
+    },
+  },
+]);

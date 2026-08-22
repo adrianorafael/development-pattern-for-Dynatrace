@@ -1,0 +1,11 @@
+{
+  "name": "development-pattern-for-dynatrace",
+  "owner": { "name": "adrianorafael" },
+  "plugins": [
+    {
+      "name": "development-pattern-for-dynatrace",
+      "description": "Development standard and guardrails for building native Dynatrace Apps with an AI coding agent.",
+      "source": "./"
+    }
+  ]
+}
