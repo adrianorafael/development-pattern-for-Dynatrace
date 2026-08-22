@@ -72,7 +72,7 @@ And know where the Dynatrace knowledge comes from — but **do not stockpile it*
 ## Phase 1 → 6 — The pipeline
 
 ```
-0 BOOTSTRAP   repo? tenant? MCP? identity? publication?  → official skills installed, .gitignore armed
+0 BOOTSTRAP   repo? tenant? MCP? identity? version? publication?  → .gitignore armed, docs referenced by URL
 1 RESEARCH    developer.dynatrace.com, depth-first       → evidence log with URLs actually read
 2 SPEC        specs/<slug>.md                            → ⛔ USER APPROVAL GATE
 3 BUILD       Strato-only, verified APIs                 → every symbol traced to a .d.ts or a doc page

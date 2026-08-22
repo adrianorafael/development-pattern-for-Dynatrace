@@ -50,7 +50,8 @@ copy goes stale between sessions while still looking authoritative.
 9. [Cost & Consumption (DPS)](#cost--consumption-dps)
 10. [Repository Structure](#repository-structure)
 11. [Templates & Tools](#templates--tools)
-12. [Keeping It Current](#keeping-it-current)
+12. [Versioning](#versioning)
+13. [Keeping It Current](#keeping-it-current)
 
 ## Prerequisites
 
@@ -189,7 +190,7 @@ to your app repository as `AGENTS.md` so future sessions pick the pattern up aut
 ## The Pipeline
 
 ```
-0 BOOTSTRAP   repo? tenant? MCP? identity? publication?  → official skills installed, .gitignore armed
+0 BOOTSTRAP   repo? tenant? MCP? identity? version? publication?  → .gitignore armed, docs referenced by URL
 1 RESEARCH    developer.dynatrace.com, depth-first       → evidence log with URLs actually read
 2 SPEC        specs/<slug>.md                            → ⛔ USER APPROVAL GATE
 3 BUILD       Strato-only, verified APIs                 → every symbol traced to a .d.ts or a doc page
@@ -352,6 +353,17 @@ Run the scanner directly, any time:
 bash skills/development-pattern-for-dynatrace/assets/scripts/scan-secrets.sh
 git diff --cached | bash skills/development-pattern-for-dynatrace/assets/scripts/scan-secrets.sh --stdin
 ```
+
+## Versioning
+
+This skill follows [Semantic Versioning](https://semver.org/) — the same standard R12
+requires of the apps it helps you build. "Breaking" means breaking for the person *using*
+the skill: a rule renumbered, a reference removed, a template's contract changed.
+
+- `.claude-plugin/plugin.json` → `version` is the single source of truth.
+- Every release is recorded in [CHANGELOG.md](CHANGELOG.md) and tagged `v<version>`.
+
+**Current version: 1.1.0** — adds R12, and stops vendoring the Dynatrace docs.
 
 ## Keeping It Current
 

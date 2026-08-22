@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Development Pattern for Dynatrace</title>
-  <meta name="description" content="An Agent Skill that keeps AI coding agents inside the Dynatrace world: Strato-only UI, no invented APIs, DQL validated against a live tenant, verified chart data shapes, and secret-safe publishing to GitHub." />
+  <meta name="description" content="An Agent Skill that keeps AI coding agents inside the Dynatrace world: Strato-only UI, no invented APIs, DQL validated against a live tenant, verified chart data shapes, versioned releases with docs that stay in sync, and secret-safe publishing to GitHub." />
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
   <style>
     :root {
@@ -259,7 +259,7 @@
       <h2>Six phases, three hard gates</h2>
       <p>No spec without research. No deploy without a named target. No push without a sanitize pass.</p>
     </div>
-<pre>0 <span class="k">BOOTSTRAP</span>   repo? tenant? MCP? identity? publication?  <span class="c">→ official skills installed, .gitignore armed</span>
+<pre>0 <span class="k">BOOTSTRAP</span>   repo? tenant? MCP? identity? version? publication?  <span class="c">→ .gitignore armed, docs referenced by URL</span>
 1 <span class="k">RESEARCH</span>    developer.dynatrace.com, depth-first       <span class="c">→ evidence log with URLs actually read</span>
 2 <span class="k">SPEC</span>        specs/&lt;slug&gt;.md                            <span class="r">→ ⛔ USER APPROVAL GATE</span>
 3 <span class="k">BUILD</span>       Strato-only, verified APIs                 <span class="c">→ every symbol traced to a .d.ts or a doc page</span>
@@ -382,6 +382,7 @@
       <span class="chip"><b>App State</b> &amp; Document services</span>
       <span class="chip"><b>Dynatrace MCP</b> server</span>
       <span class="chip"><b>Agent Skills</b> open format</span>
+      <span class="chip"><b>v1.1.0</b> — <a href="https://github.com/adrianorafael/development-pattern-for-Dynatrace/blob/main/CHANGELOG.md">changelog</a></span>
     </div>
     <div class="callout" style="margin-top:26px">
       <b>Version reality check.</b> As of Strato 3.x,
